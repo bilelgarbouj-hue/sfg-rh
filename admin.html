@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0d1117"/>
+<title>STE FRÈRES GARBOUJ – Administration RH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+:root{
+  --ink:#0d1117;--ink2:#161b22;--ink3:#21262d;--ink4:#30363d;
+  --steel:#8b949e;--white:#f0f6fc;
+  --amber:#e8a020;--rust:#d4622a;
+  --jade:#2ea043;--ruby:#da3633;--sky:#58a6ff;
+  --violet:#bc8cff;--orange:#f97316;
+  --border:rgba(240,246,252,.1);--border2:rgba(240,246,252,.06);
+  --r:14px;--r-sm:9px;--font:'Barlow',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--white);font-family:var(--font)}
+button{border:none;cursor:pointer;font-family:var(--font)}
+input,textarea,select{font-family:var(--font);outline:none}
+
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;transform:translateY(12px);overflow:hidden}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+
+/* ════ LOGIN ADMIN ════ */
+#alogin{background:var(--ink);align-items:center;justify-content:center;padding:20px}
+.al-glow{position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(218,54,51,.08),transparent 65%);top:-100px;left:50%;transform:translateX(-50%);pointer-events:none}
+.al-box{
+  position:relative;z-index:1;width:100%;max-width:360px;
+  background:var(--ink2);border:1px solid var(--border);
+  border-top:3px solid var(--ruby);border-radius:var(--r);
+  padding:30px 24px 26px;box-shadow:0 24px 80px rgba(0,0,0,.7);
+}
+.al-header{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+.al-emblem{width:48px;height:48px;border-radius:11px;background:linear-gradient(145deg,var(--ruby),var(--rust));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 14px rgba(218,54,51,.3)}
+.al-co{font-family:var(--cond);font-size:11px;font-weight:600;color:var(--steel);letter-spacing:1.5px;text-transform:uppercase;line-height:1}
+.al-title{font-family:var(--cond);font-size:18px;font-weight:800;margin-top:3px;line-height:1.1}
+.al-heading{font-family:var(--cond);font-size:26px;font-weight:700;margin-bottom:4px}
+.al-sub{font-size:13px;color:var(--steel);margin-bottom:22px}
+.al-role-tag{
+  display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;
+  background:rgba(218,54,51,.1);border:1px solid rgba(218,54,51,.2);
+  border-radius:6px;padding:6px 12px;font-size:12px;color:#ff7b72;
+  font-family:var(--cond);font-weight:700;letter-spacing:.5px;
+}
+.afield{margin-bottom:13px}
+.afield label{font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;display:block;font-family:var(--cond)}
+.afield input{width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;color:var(--white);font-size:15px;transition:border-color .2s}
+.afield input:focus{border-color:var(--ruby)}
+.afield input::placeholder{color:var(--ink4)}
+.btn-aconnect{
+  width:100%;margin-top:6px;padding:15px;
+  background:linear-gradient(135deg,var(--ruby),var(--rust));
+  color:var(--white);font-size:16px;font-weight:700;font-family:var(--cond);
+  letter-spacing:.8px;text-transform:uppercase;border-radius:var(--r-sm);
+  box-shadow:0 6px 20px rgba(218,54,51,.3);transition:transform .15s;
+}
+.btn-aconnect:active{transform:scale(.97)}
+.aerr{display:none;margin-top:10px;padding:10px;background:rgba(218,54,51,.1);border:1px solid rgba(218,54,51,.25);border-radius:8px;color:#ff7b72;font-size:13px;text-align:center}
+.aerr.on{display:block}
+.ademo{margin-top:16px;padding:11px 13px;background:rgba(218,54,51,.06);border:1px solid rgba(218,54,51,.12);border-radius:var(--r-sm);font-size:12px;color:var(--steel);line-height:1.7}
+.ademo strong{color:var(--ruby);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-family:var(--cond);margin-bottom:3px}
+
+/* ════ ADMIN SHELL ════ */
+.atopbar{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 16px;height:56px;display:flex;align-items:center;gap:12px;flex-shrink:0;z-index:20}
+.at-logo{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.at-em{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--ruby),var(--rust));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.at-name{font-family:var(--cond);font-size:15px;font-weight:700;letter-spacing:.3px}
+.at-badge{
+  font-size:9px;font-weight:700;font-family:var(--cond);letter-spacing:.8px;
+  text-transform:uppercase;background:rgba(218,54,51,.15);border:1px solid rgba(218,54,51,.3);
+  color:var(--ruby);border-radius:5px;padding:3px 7px;flex-shrink:0;
+}
+.btn-logout-top{background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--steel);font-family:var(--cond);font-weight:600}
+
+/* Tab nav */
+.admin-tabs{display:flex;background:var(--ink2);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
+.admin-tabs::-webkit-scrollbar{display:none}
+.atab{padding:14px 18px;font-size:13px;font-weight:600;color:var(--steel);border-bottom:2px solid transparent;white-space:nowrap;background:none;transition:color .2s,border-color .2s;font-family:var(--cond);letter-spacing:.5px;text-transform:uppercase}
+.atab.on{color:var(--amber);border-color:var(--amber)}
+
+.ascroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px}
+.ascroll::-webkit-scrollbar{display:none}
+.apanel{display:none;padding:14px 16px}
+.apanel.on{display:block}
+
+/* Admin stats */
+.adash-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+.ast{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:18px 14px;text-align:centercursor:pointer;transition:border-color .2s,transform .15s,background .15s}
+.ast:active{transform:scale(.96)}
+.ast:hover{border-color:rgba(232,160,32,.3);background:rgba(232,160,32,.04)}
+.ast-val{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-1px}
+.ast-val.a{color:var(--amber)}.ast-val.g{color:var(--jade)}.ast-val.s{color:var(--sky)}.ast-val.r{color:var(--ruby)}
+.ast-lbl{font-size:10px;color:var(--steel);margin-top:5px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;font-family:var(--cond)}
+
+.sec-lbl{font-family:var(--cond);font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-top:2px}
+
+/* Request cards admin */
+.ar-card{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:9px;transition:border-color .2s}
+.ar-card.approved{border-color:rgba(46,160,67,.2);background:rgba(46,160,67,.04)}
+.ar-card.rejected{border-color:rgba(218,54,51,.15);opacity:.7}
+.ar-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.ar-emp{font-family:var(--cond);font-size:15px;font-weight:700;letter-spacing:.2px}
+.ar-type{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(88,166,255,.12);color:var(--sky);font-family:var(--cond);letter-spacing:.3px;flex-shrink:0}
+.ar-detail{font-size:12px;color:var(--steel);margin-bottom:12px;line-height:1.6}
+.ar-actions{display:flex;gap:8px}
+.btn-ok{flex:1;padding:10px;border-radius:8px;background:rgba(46,160,67,.12);border:1px solid rgba(46,160,67,.25);color:var(--jade);font-size:12px;font-weight:700;font-family:var(--cond);letter-spacing:.5px}
+.btn-no{flex:1;padding:10px;border-radius:8px;background:rgba(218,54,51,.08);border:1px solid rgba(218,54,51,.25);color:var(--ruby);font-size:12px;font-weight:700;font-family:var(--cond);letter-spacing:.5px}
+.ar-done{font-size:11px;color:var(--steel);margin-top:4px;font-family:var(--cond)}
+
+/* Workers list */
+.wk-row{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.wk-av{width:40px;height:40px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,var(--amber),var(--rust));display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:14px;font-weight:800;color:var(--ink)}
+.wk-info{flex:1;min-width:0}
+.wk-name{font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.2px}
+.wk-sub{font-size:11px;color:var(--steel);margin-top:2px}
+.wk-hrs{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--amber)}
+.wk-expand-btn{background:var(--ink3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--steel);font-family:var(--cond);font-weight:600}
+.wk-detail{
+  display:none;background:var(--ink3);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px 14px;margin-top:-4px;margin-bottom:8px;
+}
+.wk-detail.on{display:block}
+.wk-detail-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);font-size:12px}
+.wk-detail-row:last-child{border-bottom:none}
+.wk-detail-lbl{color:var(--steel)}
+.wk-detail-val{font-weight:600;font-family:var(--mono)}
+
+/* Messages admin */
+.amsg-card{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:9px}
+.amsg-card.unread{border-color:rgba(232,160,32,.25);background:rgba(232,160,32,.04)}
+.amsg-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.amsg-from{font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.2px}
+.amsg-time{font-size:10px;color:var(--steel)}
+.amsg-body{font-size:13px;color:var(--steel);line-height:1.6;margin-bottom:10px}
+.btn-reply{padding:8px 14px;border-radius:7px;background:var(--ink3);border:1px solid var(--border);font-size:12px;color:var(--steel);font-family:var(--cond);font-weight:600}
+.amsg-reply-box{display:none;margin-top:10px}
+.amsg-reply-box.on{display:block}
+.amsg-reply-box textarea{width:100%;background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--white);font-size:13px;resize:none;min-height:65px;font-family:var(--font)}
+.amsg-reply-box textarea:focus{border-color:var(--amber);outline:none}
+.btn-send-reply{margin-top:7px;width:100%;padding:10px;border-radius:7px;background:var(--amber);color:var(--ink);font-size:12px;font-weight:700;font-family:var(--cond);letter-spacing:.5px}
+
+/* Badge */
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;font-family:var(--cond);letter-spacing:.3px}
+.badge.ok{background:rgba(46,160,67,.15);color:var(--jade)}
+.badge.wait{background:rgba(232,160,32,.15);color:var(--amber)}
+.badge.no{background:rgba(218,54,51,.12);color:var(--ruby)}
+
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-72px);background:var(--ink2);border:1px solid var(--border);border-radius:10px;padding:11px 18px;font-size:13px;font-weight:500;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.6);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(46,160,67,.4);color:var(--jade)}
+.toast.err{border-color:rgba(218,54,51,.4);color:var(--ruby)}
+.toast.info{border-color:rgba(232,160,32,.3);color:var(--amber)}
+
+.empty{text-align:center;padding:36px 16px;color:var(--steel)}
+.empty-ico{font-size:40px;margin-bottom:8px}
+.empty p{font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════ ADMIN LOGIN ════ -->
+<div class="screen active" id="alogin">
+  <div class="al-glow"></div>
+  <div class="al-box">
+    <div class="al-header">
+      <div class="al-emblem">🛡️</div>
+      <div>
+        <div class="al-co">Interface Administration</div>
+        <div class="al-title">STE FRÈRES<br>GARBOUJ</div>
+      </div>
+    </div>
+    <div class="al-role-tag">🔐 ACCÈS RÉSERVÉ – RH / DIRECTION</div>
+    <div class="al-heading">Connexion Admin</div>
+    <div class="al-sub">Espace de gestion du personnel</div>
+    <div class="afield">
+      <label>Identifiant administrateur</label>
+      <input id="au" type="text" placeholder="admin.rh" autocomplete="username"/>
+    </div>
+    <div class="afield">
+      <label>Mot de passe</label>
+      <input id="ap" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <input type="checkbox" id="a-remember" style="width:16px;height:16px;accent-color:var(--amber);cursor:pointer"/>
+      <label for="a-remember" style="font-size:13px;color:var(--steel);cursor:pointer">Rester connecté</label>
+    </div>
+    <button class="btn-aconnect" onclick="aLogin()">Accéder au tableau de bord</button>
+    <div id="admin-install-box" style="margin-top:10px;display:none">
+      <button id="btn-admin-install" onclick="triggerAdminInstall()" style="width:100%;padding:11px;border-radius:8px;background:rgba(88,166,255,.1);border:1.5px solid rgba(88,166,255,.25);color:var(--sky);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px">
+        📲 Installer l'app Admin sur ce téléphone
+      </button>
+    </div>
+    <div id="admin-install-guide" style="margin-top:8px;display:none">
+      <button onclick="showAdminInstallGuide()" style="width:100%;padding:10px;border-radius:8px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px">
+        📲 Comment installer l'app Admin
+      </button>
+    </div>
+    <div class="aerr" id="aerr">Identifiant ou mot de passe incorrect</div>
+    <div class="ademo">
+      <strong>Compte de démonstration</strong>
+      🛡️ Identifiant : <b>admin.rh</b><br>
+      🔑 Mot de passe : <b>garbouj2026</b>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ADMIN CHANGE PASSWORD ════ -->
+<div class="screen" id="achpwd">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;background:var(--ink)">
+    <div style="width:100%;max-width:360px;background:var(--ink2);border:1px solid var(--border);border-top:3px solid var(--ruby);border-radius:14px;padding:28px 22px">
+      <div style="font-size:32px;text-align:center;margin-bottom:12px">🔑</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;text-align:center;margin-bottom:6px">Mot de passe Administrateur</div>
+      <div id="achpwd-sub" style="font-size:13px;color:var(--steel);text-align:center;margin-bottom:22px;line-height:1.5">Définissez un mot de passe confidentiel pour l'interface admin.</div>
+      <div class="afield"><label>Mot de passe actuel</label><input id="acp-old" type="password" placeholder="Mot de passe actuel"/></div>
+      <div class="afield"><label>Nouveau mot de passe</label><input id="acp-new" type="password" placeholder="Min. 6 caractères"/></div>
+      <div class="afield"><label>Confirmer</label><input id="acp-conf" type="password" placeholder="Répéter"/></div>
+      <div style="display:none;margin-bottom:10px;padding:9px 13px;background:rgba(218,54,51,.1);border:1px solid rgba(218,54,51,.2);border-radius:7px;color:#ff7b72;font-size:13px" id="acp-err"></div>
+      <button class="btn-aconnect" onclick="doAdminChangePwd()">Enregistrer</button>
+      <button id="achpwd-skip" onclick="skipAdminPwd()" style="width:100%;margin-top:10px;padding:12px;border-radius:9px;background:none;border:1.5px solid var(--border);color:var(--steel);font-size:13px;display:none">Passer pour l'instant</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ADMIN DASHBOARD ════ -->
+<div class="screen" id="adash">
+  <div class="atopbar">
+    <div class="at-logo">
+      <div class="at-em">🛡️</div>
+      <div class="at-name">FRÈRES GARBOUJ</div>
+    </div>
+    <div class="at-badge">ADMIN RH</div>
+    <span id="sync-badge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(218,54,51,.15);border:1px solid rgba(218,54,51,.4);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;color:#ff6b6b;transition:all .4s ease">
+      <span id="status-dot" style="width:8px;height:8px;border-radius:50%;background:#da3633;display:inline-block;box-shadow:0 0 6px #da3633;transition:all .4s ease"></span>
+      <span id="status-txt">⏳ Connexion...</span>
+    </span>
+    <button onclick="toggleNotifPanel()" style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:14px;position:relative;cursor:pointer" title="Notifications">
+      🔔<span id="notif-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--ruby);color:white;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;font-family:'Barlow Condensed',sans-serif"></span>
+    </button>
+    <button class="btn-logout-top" onclick="aLogout()">Quitter</button>
+  </div>
+
+<!-- NOTIFICATION PANEL -->
+<div id="notif-panel" style="display:none;position:fixed;top:60px;right:10px;z-index:9999;width:320px;max-width:calc(100vw - 20px);background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 16px 48px rgba(0,0,0,.7);overflow:hidden">
+  <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">🔔 Notifications</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="markAllNotifsRead()" style="font-size:11px;color:var(--steel);background:none;font-family:'Barlow Condensed',sans-serif">Tout marquer lu</button>
+      <button onclick="toggleNotifPanel()" style="background:none;color:var(--steel);font-size:18px;padding:0 4px">✕</button>
+    </div>
+  </div>
+  <div id="notif-list" style="max-height:400px;overflow-y:auto"></div>
+  <div style="padding:10px 16px;border-top:1px solid var(--border)">
+    <button onclick="requestNotifPermission()" style="width:100%;padding:9px;border-radius:8px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif" id="notif-perm-btn">🔔 Activer les notifications push</button>
+  </div>
+</div>
+<!-- Backdrop to close notif panel -->
+<div id="notif-backdrop" onclick="toggleNotifPanel()" style="display:none;position:fixed;inset:0;z-index:9998"></div>
+
+  <div class="admin-tabs">
+    <button class="atab on" onclick="aTab('dash',this)">📊 Tableau de bord</button>
+    <button class="atab" onclick="aTab('reqs',this)">📋 Demandes</button>
+    <button class="atab" onclick="aTab('workers',this)">👷 Ouvriers</button>
+    <button class="atab" onclick="aTab('hours',this)">🕐 Heures</button>
+    <button class="atab" onclick="aTab('ptg',this)">📍 Pointage</button>
+    <button class="atab" onclick="aTab('msgs',this)">💬 Messages</button>
+    <button class="atab" onclick="openAdminChangePwd()" style="color:var(--ruby)">🔑 MDP Admin</button>
+  </div>
+  <div class="ascroll">
+
+    <!-- DASHBOARD -->
+    <div class="apanel on" id="ap-dash">
+      <div class="adash-stats" id="aStats"></div>
+      <div class="sec-lbl">Demandes en attente</div>
+      <div id="aPendingList"></div>
+      <div class="sec-lbl" style="margin-top:16px">Activité récente</div>
+      <div id="aActivity"></div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="apanel" id="ap-reqs">
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px">
+        <button class="btn-filter on" data-f="all" onclick="aFilterReq('all',this)">Toutes</button>
+        <button class="btn-filter" data-f="pending" onclick="aFilterReq('pending',this)">⏳ En attente</button>
+        <button class="btn-filter" data-f="approved" onclick="aFilterReq('approved',this)">✅ Approuvées</button>
+        <button class="btn-filter" data-f="rejected" onclick="aFilterReq('rejected',this)">❌ Refusées</button>
+      </div>
+      <div id="aReqList"></div>
+    </div>
+
+    <!-- WORKERS -->
+    <div class="apanel" id="ap-workers">
+      <div id="aWorkerList"></div>
+    </div>
+
+    <!-- HOURS -->
+    <div class="apanel" id="ap-hours">
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Ouvrier</label>
+            <select id="hours-worker-sel" onchange="onHoursWorkerChange()" style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--white);font-size:13px;-webkit-appearance:none">
+              <option value="">— Sélectionner —</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Mois</label>
+            <input type="month" id="hours-month-sel" value="2026-04" onchange="onHoursMonthChange()" style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--white);font-size:13px;color-scheme:dark"/>
+          </div>
+        </div>
+        <div id="hours-grid"><p style="color:var(--steel);text-align:center;padding:30px">Sélectionnez un ouvrier pour saisir ses heures.</p></div>
+      </div>
+    </div>
+
+    <!-- POINTAGE ADMIN -->
+    <div class="apanel" id="ap-ptg">
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+        <!-- Date picker -->
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:1">
+            <label style="font-size:11px;color:var(--steel);text-transform:uppercase;letter-spacing:.6px;font-weight:700;display:block;margin-bottom:5px">Date</label>
+            <input type="date" id="ptg-date" style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--white);font-size:13px;color-scheme:dark"/>
+          </div>
+          <button onclick="loadPtgRecords()" style="padding:10px 18px;border-radius:9px;background:var(--amber);color:var(--ink);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex-shrink:0">📋 Afficher</button>
+          <button onclick="exportPtgCSV()" style="padding:10px 14px;border-radius:9px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex-shrink:0" title="Exporter CSV">⬇️ CSV</button>
+        </div>
+        <!-- Stats summary -->
+        <div id="ptg-stats" style="display:none;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div style="background:var(--ink3);border:1px solid var(--border);border-radius:9px;padding:10px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:var(--jade);font-family:var(--mono)" id="ptg-stat-present">0</div>
+            <div style="font-size:10px;color:var(--steel);margin-top:3px">Présents</div>
+          </div>
+          <div style="background:var(--ink3);border:1px solid var(--border);border-radius:9px;padding:10px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:var(--ruby);font-family:var(--mono)" id="ptg-stat-late">0</div>
+            <div style="font-size:10px;color:var(--steel);margin-top:3px">En retard</div>
+          </div>
+          <div style="background:var(--ink3);border:1px solid var(--border);border-radius:9px;padding:10px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:var(--amber);font-family:var(--mono)" id="ptg-stat-absent">0</div>
+            <div style="font-size:10px;color:var(--steel);margin-top:3px">Absents</div>
+          </div>
+        </div>
+        <!-- Bouton ajouter pointage -->
+        <button onclick="openAddPtg()" id="btn-add-ptg" style="display:none;width:100%;padding:11px;border-radius:9px;background:rgba(46,160,67,.1);border:1.5px dashed rgba(46,160,67,.4);color:var(--jade);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;margin-bottom:4px">➕ Ajouter un pointage manuel</button>
+        <!-- Records list -->
+        <div id="ptg-records"><div style="text-align:center;padding:30px;color:var(--steel)">Sélectionnez une date pour voir les pointages</div></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="apanel" id="ap-msgs">
+      <!-- SEND BROADCAST MESSAGE -->
+      <div style="background:rgba(232,160,32,.06);border:1.5px solid rgba(232,160,32,.2);border-radius:12px;padding:16px;margin-bottom:14px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">📢 Envoyer un message aux employés</div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;color:var(--steel);display:block;margin-bottom:5px">Destinataire</label>
+          <select id="msg-dest" style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--white);font-size:13px;-webkit-appearance:none">
+            <option value="all">📢 Tous les employés</option>
+          </select>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;color:var(--steel);display:block;margin-bottom:6px">Messages rapides</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <button onclick="setQuickMsg(this)" data-msg="🎉 بمناسبة عيد الأضحى المبارك، تقبل الله منكم. كل عام وأنتم بخير! 🌙" style="padding:6px 12px;border-radius:20px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:11px;cursor:pointer">🌙 عيد أضحى</button>
+            <button onclick="setQuickMsg(this)" data-msg="🌙 رمضان كريم! بمناسبة شهر رمضان المبارك، تقبل الله صيامكم. كل عام وأنتم بخير!" style="padding:6px 12px;border-radius:20px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:11px;cursor:pointer">🌙 رمضان</button>
+            <button onclick="setQuickMsg(this)" data-msg="📅 تذكير: يرجى مراجعة ساعات العمل وتأكيدها قبل نهاية الشهر." style="padding:6px 12px;border-radius:20px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:11px;cursor:pointer">📅 تذكير</button>
+            <button onclick="setQuickMsg(this)" data-msg="⚠️ إشعار من الإدارة: " style="padding:6px 12px;border-radius:20px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:11px;cursor:pointer">⚠️ إشعار</button>
+            <button onclick="setQuickMsg(this)" data-msg="✅ عطلة: يوم " style="padding:6px 12px;border-radius:20px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:11px;cursor:pointer">🎉 عطلة</button>
+          </div>
+          <textarea id="msg-body-send" rows="3" placeholder="اكتب رسالتك هنا... / Écrivez votre message ici..."
+            style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--white);font-size:13px;resize:none"></textarea>
+        </div>
+        <button onclick="sendBroadcast()" style="width:100%;padding:12px;border-radius:9px;background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:14px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px">
+          📤 Envoyer le message
+        </button>
+        <div id="broadcast-status" style="display:none;margin-top:8px;font-size:12px;text-align:center"></div>
+      </div>
+      <!-- RECEIVED FROM EMPLOYEES -->
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">💬 Messages des employés</div>
+      <div id="aMsgList"></div>
+    </div>
+
+  <!-- CONVERSATION PANEL (slide-in) -->
+  <div id="conv-panel" style="display:none;position:fixed;top:0;right:0;width:100%;max-width:480px;height:100vh;background:var(--ink);border-left:1px solid var(--border);z-index:9999;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)">
+    <!-- Header -->
+    <div style="background:var(--ink2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <button onclick="closeConv()" style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--steel);font-size:13px;cursor:pointer">← Retour</button>
+      <div style="flex:1;min-width:0">
+        <div id="conv-name" style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white)">—</div>
+        <div id="conv-sub" style="font-size:10px;color:var(--steel);margin-top:1px">Historique de la conversation</div>
+      </div>
+      <div id="conv-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--ink);flex-shrink:0">?</div>
+    </div>
+    <!-- Messages thread -->
+    <div id="conv-thread" style="flex:1;overflow-y:auto;padding:14px 14px 0;display:flex;flex-direction:column;gap:10px"></div>
+    <!-- Reply box -->
+    <div style="padding:12px;border-top:1px solid var(--border);background:var(--ink2);flex-shrink:0">
+      <textarea id="conv-reply-ta" rows="2" placeholder="Votre réponse…"
+        style="width:100%;box-sizing:border-box;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--white);font-size:13px;resize:none;font-family:var(--font)"
+        onkeydown="if(event.key==='Enter'&&event.ctrlKey) sendConvReply()"></textarea>
+      <button onclick="sendConvReply()" id="conv-send-btn"
+        style="width:100%;margin-top:8px;padding:11px;border-radius:9px;background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif">
+        📤 Envoyer — Ctrl+Entrée
+      </button>
+    </div>
+  </div>
+  <!-- Backdrop -->
+  <div id="conv-backdrop" onclick="closeConv()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998"></div>
+
+  </div>
+</div>
+
+<style>
+.conv-bubble{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.55;word-break:break-word}
+.conv-bubble.emp{background:var(--ink3);border:1px solid var(--border);color:var(--white);align-self:flex-start;border-bottom-left-radius:4px}
+.conv-bubble.admin{background:linear-gradient(135deg,rgba(232,160,32,.18),rgba(197,77,26,.12));border:1px solid rgba(232,160,32,.25);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px}
+.conv-bubble .bub-time{font-size:9px;color:var(--steel);margin-top:4px;text-align:right}
+.conv-bubble.emp .bub-time{text-align:left}
+.conv-bubble .bub-sender{font-size:9px;font-weight:700;color:var(--amber);margin-bottom:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px}
+.amsg-card{cursor:pointer;transition:border-color .15s,background .15s}
+.amsg-card:hover{border-color:rgba(232,160,32,.4)!important;background:rgba(232,160,32,.06)!important}
+.btn-filter{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;background:var(--ink3);color:var(--steel);border:1px solid var(--border);transition:all .2s;font-family:var(--cond);letter-spacing:.5px}
+.btn-filter.on{background:var(--amber);color:var(--ink);border-color:var(--amber)}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.modal-box{width:100%;max-width:420px;max-height:90vh;overflow-y:auto;background:var(--ink2);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:24px 20px 32px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-box::-webkit-scrollbar{display:none}
+.modal-title{font-family:var(--cond);font-size:18px;font-weight:800;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--steel);margin-bottom:18px;line-height:1.5}
+.mfield{margin-bottom:11px}
+.mfield label{font-size:10px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.8px;font-family:var(--cond);display:block;margin-bottom:5px}
+.mfield input,.mfield select{width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--white);font-size:14px;transition:border-color .2s}
+.mfield input:focus,.mfield select:focus{border-color:var(--amber);outline:none}
+.mfield input::placeholder{color:var(--ink4)}
+.mfield select{-webkit-appearance:none}
+.mrow2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.merr{display:none;font-size:12px;color:var(--ruby);background:rgba(218,54,51,.1);border:1px solid rgba(218,54,51,.2);border-radius:7px;padding:8px 12px;margin-bottom:10px}
+.merr.on{display:block}
+.mbtns{display:flex;gap:8px;margin-top:14px}
+.btn-mok{flex:1;padding:13px;border-radius:9px;background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:13px;font-weight:700;font-family:var(--cond);letter-spacing:.5px}
+.btn-mcancel{padding:13px 18px;border-radius:9px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:13px;font-family:var(--cond);font-weight:600}
+.cred-card{background:var(--ink3);border:1.5px dashed rgba(232,160,32,.4);border-radius:10px;padding:16px;margin:14px 0;text-align:center}
+.cred-card-title{font-size:10px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:1px;font-family:var(--cond);margin-bottom:10px}
+.cred-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border2)}
+.cred-row:last-child{border-bottom:none}
+.cred-lbl{font-size:12px;color:var(--steel)}
+.cred-val{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--amber)}
+.cred-warning{background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--steel);line-height:1.5;margin-top:10px}
+</style>
+
+<!-- MODAL: Créer / Modifier compte -->
+<div class="modal" id="acctModal">
+  <div class="modal-box">
+    <div class="modal-title" id="acct-title">➕ Créer un compte</div>
+    <div class="modal-sub" id="acct-sub">Remplissez les informations de l'employé.</div>
+    <div class="mrow2">
+      <div class="mfield"><label>Nom *</label><input id="acct-nom" placeholder="ex: Benali"/></div>
+      <div class="mfield"><label>Prénom *</label><input id="acct-prenom" placeholder="ex: Ahmed"/></div>
+    </div>
+    <div class="mfield" id="acct-username-row">
+      <label>Identifiant connexion</label>
+      <input id="acct-username" placeholder="ex: benali.ahmed (auto si vide)"/>
+    </div>
+    <div class="mfield" id="acct-pass-row">
+      <label>Mot de passe initial</label>
+      <input id="acct-pass" type="text" placeholder="Laissez vide = numéro de tél."/>
+    </div>
+    <div class="mfield"><label>Téléphone * (8 chiffres)</label><input id="acct-tel" type="tel" placeholder="ex: 55123456"/></div>
+    <div class="mrow2">
+      <div class="mfield"><label>N° CIN</label><input id="acct-cin" placeholder="ex: 12345678"/></div>
+      <div class="mfield"><label>N° CNSS</label><input id="acct-cnss" placeholder="ex: 987654"/></div>
+    </div>
+    <div class="mrow2">
+      <div class="mfield"><label>Taux horaire (DT)</label><input id="acct-taux" type="number" placeholder="12"/></div>
+      <div class="mfield"><label>Avance (DT)</label><input id="acct-avance" type="number" placeholder="0"/></div>
+    </div>
+    <div class="mrow2">
+      <div class="mfield"><label>Poste</label>
+        <select id="acct-poste"><option>Ouvrier</option><option>Chef d'équipe</option><option>Technicien</option><option>Magasinier</option><option>Autre</option></select>
+      </div>
+      <div class="mfield"><label>Date de début</label><input id="acct-debut" type="date"/></div>
+    </div>
+    <div class="merr" id="acct-err"></div>
+    <div class="mbtns">
+      <button class="btn-mcancel" onclick="closeAcctModal()">Annuler</button>
+      <button class="btn-mok" onclick="confirmAcct()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Fiche accès -->
+<div class="modal" id="credModal">
+  <div class="modal-box">
+    <div class="modal-title">📋 Fiche d'accès employé</div>
+    <div class="modal-sub">À remettre en main propre. Ne pas partager par message.</div>
+    <div class="cred-card">
+      <div class="cred-card-title">🏗️ STE FRÈRES GARBOUJ — Accès Application</div>
+      <div class="cred-row"><span class="cred-lbl">Employé</span><span class="cred-val" id="cred-name">—</span></div>
+      <div class="cred-row"><span class="cred-lbl">Identifiant</span><span class="cred-val" id="cred-user">—</span></div>
+      <div class="cred-row"><span class="cred-lbl">Mot de passe</span><span class="cred-val" id="cred-pass">—</span></div>
+      <div class="cred-row"><span class="cred-lbl">Application</span><span class="cred-val" style="font-size:11px">garbouj.app</span></div>
+    </div>
+    <div class="cred-warning">⚠️ L'employé devra changer ce mot de passe lors de sa première connexion.</div>
+    <div class="mbtns"><button class="btn-mok" onclick="closeCredModal()" style="background:var(--jade)">✅ Compris</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Définir mot de passe -->
+<div class="modal" id="pwdModal">
+  <div class="modal-box">
+    <div class="modal-title">🔑 Définir un mot de passe</div>
+    <div class="modal-sub">Employé : <b id="spwd-name">—</b><br>Ce mot de passe sera communiqué à l'employé en main propre.</div>
+    <div class="mfield"><label>Nouveau mot de passe</label><input type="text" id="spwd-new" placeholder="Min. 4 caractères"/></div>
+    <div class="mfield"><label>Confirmer</label><input type="password" id="spwd-conf" placeholder="Répéter"/></div>
+    <div class="merr" id="spwd-err"></div>
+    <div class="mbtns">
+      <button class="btn-mcancel" onclick="closePwdModal()">Annuler</button>
+      <button class="btn-mok" onclick="confirmSetPwd()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   STE FRÈRES GARBOUJ — Admin Script
+   Firebase Realtime Database + localStorage fallback
+   Fixes: cross-device sync, month calculation, manual salary
+════════════════════════════════════════════════════════ */
+
+/* ── FIREBASE CONFIG ─────────────────────────────────────
+   IMPORTANT: Remplacez ces valeurs par votre config Firebase
+   console.firebase.google.com → Paramètres → App Web → SDK
+─────────────────────────────────────────────────────── */
+const FB_CONFIG = {
+  apiKey:            "AIzaSyDEhDsv--XRg9MPSt3bQQ--paWxyUhLXWM",
+  authDomain:        "garbouj-app.firebaseapp.com",
+  databaseURL:       "https://garbouj-app-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "garbouj-app",
+  storageBucket:     "garbouj-app.firebasestorage.app",
+  messagingSenderId: "1053408365509",
+  appId:             "1:1053408365509:web:2c1629fdd59ec858f619ac"
+};
+
+let DB = null; // Firebase database reference
+let USE_FIREBASE = false;
+
+async function initFirebase(){
+  showSyncBadge('connecting');
+  try{
+    if(typeof firebase === 'undefined'){
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js');
+    }
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    DB = firebase.database();
+
+    // ✅ TEST FIABLE : serverTimeOffset répond dès que Firebase est joignable
+    // Contrairement à _ping.set() ou .info/connected, ne jamais échouer à tort
+    await Promise.race([
+      DB.ref('.info/serverTimeOffset').once('value'),
+      new Promise((_,reject) => setTimeout(() => reject(new Error('Timeout 12s')), 12000))
+    ]);
+
+    USE_FIREBASE = true;
+    console.log('✅ Firebase admin connecté');
+    showSyncBadge('online');
+
+    // Surveiller la connexion — NE PAS mettre USE_FIREBASE=false ici
+    // Firebase SDK reconnecte automatiquement, on met juste le badge
+    DB.ref('.info/connected').on('value', snap => {
+      if(snap.val() === true){
+        USE_FIREBASE = true;
+        showSyncBadge('online');
+      } else {
+        showSyncBadge('reconnecting');
+      }
+    });
+
+  }catch(e){
+    console.warn('⚠️ Firebase non disponible:', e.message);
+    USE_FIREBASE = false;
+    showSyncBadge('offline');
+  }
+}
+
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');s.src=src;
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+
+function showSyncBadge(state){
+  // state: 'connecting' | 'online' | 'offline' | 'reconnecting'
+  const badge = document.getElementById('sync-badge');
+  const dot   = document.getElementById('status-dot');
+  const txt   = document.getElementById('status-txt');
+  if(!badge || !dot || !txt) return;
+  badge.style.display = 'inline-flex';
+  if(state === 'online'){
+    badge.style.background = 'rgba(46,160,67,.18)';
+    badge.style.border     = '1.5px solid rgba(46,160,67,.6)';
+    badge.style.color      = '#3fb950';
+    dot.style.background   = '#2ea043';
+    dot.style.boxShadow    = '0 0 10px #2ea043, 0 0 4px #2ea043';
+    txt.textContent        = '🟢 En ligne';
+  } else if(state === 'offline'){
+    badge.style.background = 'rgba(218,54,51,.18)';
+    badge.style.border     = '1.5px solid rgba(218,54,51,.6)';
+    badge.style.color      = '#ff6b6b';
+    dot.style.background   = '#da3633';
+    dot.style.boxShadow    = '0 0 8px #da3633';
+    txt.textContent        = '🔴 Hors ligne';
+  } else if(state === 'reconnecting'){
+    badge.style.background = 'rgba(232,160,32,.12)';
+    badge.style.border     = '1.5px solid rgba(232,160,32,.4)';
+    badge.style.color      = '#e8a020';
+    dot.style.background   = '#e8a020';
+    dot.style.boxShadow    = '0 0 6px #e8a020';
+    txt.textContent        = '🟡 Reconnexion...';
+  } else {
+    badge.style.background = 'rgba(232,160,32,.12)';
+    badge.style.border     = '1.5px solid rgba(232,160,32,.35)';
+    badge.style.color      = '#e8a020';
+    dot.style.background   = '#e8a020';
+    dot.style.boxShadow    = '0 0 4px #e8a020';
+    txt.textContent        = '⏳ Connexion...';
+  }
+}
+
+/* ── UNIVERSAL DB FUNCTIONS ─────────────────────────────
+   dbSet / dbGet / dbPush work with Firebase or localStorage
+─────────────────────────────────────────────────────── */
+async function dbSet(path, value){
+  if(USE_FIREBASE){
+    await DB.ref(path).set(value);
+  } else {
+    localStorage.setItem('garbouj_'+path.replace(/\//g,'_'), JSON.stringify(value));
+  }
+}
+
+async function dbGet(path){
+  if(USE_FIREBASE){
+    const snap = await DB.ref(path).get();
+    return snap.exists() ? snap.val() : null;
+  } else {
+    const s = localStorage.getItem('garbouj_'+path.replace(/\//g,'_'));
+    if(!s) return null;
+    try{ return JSON.parse(s); }
+    catch(e){ return s; } // handle legacy unencoded values
+  }
+}
+
+/* ── FIREBASE KEY SANITIZER ──────────────────────────────
+   Firebase paths cannot contain: . # $ [ ]
+   Replace . with _ for usernames like "benali.ahmed"
+────────────────────────────────────────────────────── */
+function fbKey(username){ return username.replace(/\./g,'_').replace(/#/g,'-'); }
+
+async function dbUpdate(path, updates){
+  if(USE_FIREBASE){
+    await DB.ref(path).update(updates);
+  } else {
+    const current = (await dbGet(path)) || {};
+    await dbSet(path, {...current, ...updates});
+  }
+}
+
+// Realtime listener (Firebase) or one-time read (localStorage)
+function dbListen(path, callback){
+  if(USE_FIREBASE){
+    DB.ref(path).on('value', snap => callback(snap.exists() ? snap.val() : null));
+  } else {
+    dbGet(path).then(callback);
+  }
+}
+
+/* ── PASSWORD HASHING ───────────────────────────────── */
+async function hashPwd(pwd){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pwd));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkAdminPwd(input){
+  try{
+    const stored = await dbGet('admin/pwd');
+    // stored can be: null, a SHA-256 hex hash, or the old plaintext default
+    if(!stored) return input === 'garbouj2026';
+    const inputHash = await hashPwd(input);
+    // Compare hash to stored (may be hash or raw)
+    if(inputHash === stored) return true;
+    // Fallback: compare plaintext (legacy)
+    if(input === stored) return true;
+    return false;
+  }catch(e){
+    console.error('checkAdminPwd error:',e);
+    // Last resort: allow default password if Firebase fails
+    return input === 'garbouj2026';
+  }
+}
+
+async function saveAdminPwd(pwd){
+  await dbSet('admin/pwd', await hashPwd(pwd));
+  await dbSet('admin/pwd_changed', true);
+}
+
+/* ── WORKERS ─────────────────────────────────────────── */
+const WORKERS_DEFAULT = [
+  {username:'benali.ahmed',nom:'Benali',prenom:'Ahmed',name:'Ahmed Benali',id:'GRB-001',taux:12.5,cin:'10234567',cnss:'987001',tel:'55100001',telDisplay:'+216 55 100 001',debut:'01/03/2022',poste:'Ouvrier',avance:200,pass:'55100001'},
+  {username:'khelif.mohamed',nom:'Khelif',prenom:'Mohamed',name:'Mohamed Khelif',id:'GRB-002',taux:13,cin:'20234567',cnss:'987002',tel:'55100002',telDisplay:'+216 55 100 002',debut:'15/06/2021',poste:'Ouvrier',avance:0,pass:'55100002'},
+  {username:'ziani.karim',nom:'Ziani',prenom:'Karim',name:'Karim Ziani',id:'GRB-003',taux:11.5,cin:'30234567',cnss:'987003',tel:'55100003',telDisplay:'+216 55 100 003',debut:'10/01/2023',poste:'Ouvrier',avance:150,pass:'55100003'},
+  {username:'hamidi.youcef',nom:'Hamidi',prenom:'Youcef',name:'Youcef Hamidi',id:'GRB-004',taux:12,cin:'40234567',cnss:'987004',tel:'55100004',telDisplay:'+216 55 100 004',debut:'05/09/2020',poste:'Ouvrier',avance:0,pass:'55100004'},
+  {username:'bouzidi.rachid',nom:'Bouzidi',prenom:'Rachid',name:'Rachid Bouzidi',id:'GRB-005',taux:11,cin:'50234567',cnss:'987005',tel:'55100005',telDisplay:'+216 55 100 005',debut:'12/02/2021',poste:'Ouvrier',avance:100,pass:'55100005'},
+];
+
+let WORKERS_CACHE = null;
+
+async function getWorkers(){
+  try{
+    const data = await dbGet('workers');
+    if(!data){
+      if(WORKERS_CACHE && WORKERS_CACHE.length) return WORKERS_CACHE;
+      return [...WORKERS_DEFAULT];
+    }
+    // Firebase returns object (keyed by sanitized username or numeric index)
+    let list = Array.isArray(data) ? data : Object.values(data);
+    list = list.filter(w => w && w.username); // remove nulls
+    if(list.length === 0){
+      if(WORKERS_CACHE && WORKERS_CACHE.length) return WORKERS_CACHE;
+      return [...WORKERS_DEFAULT];
+    }
+    WORKERS_CACHE = list;
+    return list;
+  }catch(e){
+    console.error('getWorkers error:', e);
+    return WORKERS_CACHE || [...WORKERS_DEFAULT];
+  }
+}
+
+async function saveWorkers(list){
+  if(!list || !Array.isArray(list)){
+    console.error('saveWorkers: invalid list, refusing to save:', list);
+    return;
+  }
+  const clean = list.filter(w => w && w.username);
+  if(clean.length === 0 && list.length > 0){
+    console.error('saveWorkers: all workers filtered out, refusing to save');
+    return;
+  }
+  // Store as object keyed by sanitized username to avoid Firebase array index issues
+  const obj = {};
+  clean.forEach(w => { obj[fbKey(w.username)] = w; });
+  await dbSet('workers', obj);
+  WORKERS_CACHE = clean;
+}
+
+async function initWorkers(){
+  // SAFE: only preload cache, NEVER write defaults to Firebase automatically
+  // Writing defaults would overwrite real employee data with demo data
+  try{
+    const existing = await dbGet('workers');
+    if(existing){
+      WORKERS_CACHE = Array.isArray(existing) ? existing.filter(Boolean) : Object.values(existing).filter(Boolean);
+      console.log('Workers loaded from Firebase:', WORKERS_CACHE.length);
+    } else {
+      console.log('No workers in Firebase yet - will show defaults until first employee is created');
+      WORKERS_CACHE = null; // will use WORKERS_DEFAULT as fallback in getWorkers()
+    }
+  }catch(e){
+    console.error('initWorkers error:', e);
+  }
+}
+
+/* ── PASSWORD management ─────────────────────────────── */
+async function getEffectivePass(w){
+  try{
+    const customPwd = await dbGet(`passwords/${fbKey(w.username)}`);
+    if(customPwd && typeof customPwd === 'string') return customPwd;
+  }catch(e){}
+  return w.pass || w.tel;
+}
+
+async function isPwdChanged(username){
+  const v = await dbGet(`pwd_changed/${fbKey(username)}`);
+  return !!v;
+}
+
+async function setWorkerPwd(username, pwd){
+  await dbSet(`passwords/${fbKey(username)}`, pwd);
+  await dbSet(`pwd_changed/${fbKey(username)}`, true);
+}
+
+async function resetWorkerPwd(username){
+  await dbSet(`passwords/${fbKey(username)}`, null);
+  await dbSet(`pwd_changed/${fbKey(username)}`, false);
+}
+
+/* ── REQUESTS ────────────────────────────────────────── */
+const REQS_DEFAULT = [
+  {id:1,user:'benali.ahmed',name:'Ahmed Benali',type:'Demande de congé',type_ar:'طلب إجازة',status:'pending',detail:'Du 20/04 au 25/04/2026 – 6 jours',date:'10/04/2026',note:'Congé annuel'},
+  {id:2,user:'benali.ahmed',name:'Ahmed Benali',type:'Avance sur salaire',type_ar:'سلفة على الراتب',status:'approved',detail:'Montant : 200 DT',date:'01/04/2026',note:''},
+  {id:3,user:'khelif.mohamed',name:'Mohamed Khelif',type:'Congé maladie',type_ar:'إجازة مرضية',status:'approved',detail:'Du 02/04 au 04/04',date:'02/04/2026',note:''},
+  {id:4,user:'ziani.karim',name:'Karim Ziani',type:'Avance sur salaire',type_ar:'سلفة على الراتب',status:'pending',detail:'Montant : 300 DT',date:'09/04/2026',note:''},
+];
+
+async function getReqs(){
+  try{
+    const data = await dbGet('requests');
+    if(!data) return [...REQS_DEFAULT];
+    const list = Array.isArray(data) ? data : Object.values(data);
+    const filtered = list.filter(r => r && r.id);
+    return filtered.length > 0 ? filtered : [...REQS_DEFAULT];
+  }catch(e){
+    console.error('getReqs error:',e);
+    return [...REQS_DEFAULT];
+  }
+}
+
+async function saveReqs(list){
+  if(!list || !Array.isArray(list)) return;
+  // Store as object to avoid Firebase array issues
+  const obj = {};
+  list.forEach((r,i) => { if(r) obj['req_'+r.id] = r; });
+  await dbSet('requests', obj);
+}
+
+async function initReqs(){
+  // SAFE: only preload, never auto-write defaults
+  try{
+    const existing = await dbGet('requests');
+    if(existing) console.log('Requests loaded from Firebase');
+    else console.log('No requests in Firebase yet');
+  }catch(e){
+    console.error('initReqs error:', e);
+  }
+}
+
+/* ── HOURS ───────────────────────────────────────────── */
+async function getHours(username, year, month){
+  const data = await dbGet(`hours/${fbKey(username)}/${year}-${month}`);
+  return data || null;
+}
+
+async function saveHours(username, year, month, hoursObj){
+  await dbSet(`hours/${fbKey(username)}/${year}-${month}`, hoursObj);
+}
+
+/* ── SALARY OVERRIDE (manual retenue) ───────────────── */
+async function getSalaryOverride(username, year, month){
+  const data = await dbGet(`salary_override/${fbKey(username)}/${year}-${month}`);
+  return data; // {net_override: 1500.5, note: 'Retenue CNSS 9%'}
+}
+
+async function saveSalaryOverride(username, year, month, override){
+  await dbSet(`salary_override/${fbKey(username)}/${year}-${month}`, override);
+}
+
+/* ── MESSAGES ────────────────────────────────────────── */
+const MSGS_DEFAULT = [
+  {id:1,from:'Benali Ahmed',user:'benali.ahmed',time:"Aujourd'hui",body:'Bonjour, ma demande de congé a-t-elle été traitée ?',unread:true},
+  {id:2,from:'Ziani Karim',user:'ziani.karim',time:'09/04/2026',body:'Je souhaite modifier mon numéro de téléphone.',unread:true},
+];
+
+async function getMsgs(){
+  const data = await dbGet('messages');
+  if(!data) return MSGS_DEFAULT;
+  if(Array.isArray(data)) return data.filter(Boolean);
+  return Object.values(data).filter(Boolean);
+}
+
+async function saveMsgs(list){
+  await dbSet('messages', list);
+}
+
+async function getEmpMsgs(username){
+  try{
+    const data = await dbGet(`emp_messages/${fbKey(username)}`);
+    if(!data) return [];
+    const list = Array.isArray(data) ? data : Object.values(data);
+    return list.filter(m=>m&&m.id).sort((a,b)=>b.id-a.id); // newest first
+  }catch(e){ return []; }
+}
+
+async function pushEmpMsg(username, msg){
+  const existing = await getEmpMsgs(username);
+  existing.unshift(msg);
+  // Store as object keyed by msg id
+  const obj = {};
+  existing.slice(0,50).forEach(m => { if(m) obj['msg_'+m.id] = m; }); // keep last 50
+  await dbSet(`emp_messages/${fbKey(username)}`, obj);
+}
+
+/* ── SALARY CALCULATION ──────────────────────────────── 
+   BUG FIX: was using hardcoded month 4 (April)
+   Now uses the correct year/month passed as parameter
+─────────────────────────────────────────────────────── */
+function calcSalaryFromHours(hoursObj, taux, avance, year, month){
+  let normalH = 0, suppH = 0, workedDays = 0;
+  for(const [day, hrs] of Object.entries(hoursObj)){
+    const wd = new Date(year, month-1, +day).getDay(); // ← fixed: use year+month
+    if(hrs > 0) workedDays++;
+    if(wd === 0) suppH += hrs;   // Sunday = overtime
+    else normalH += hrs;          // Mon–Sat = normal
+  }
+  const brutNormal = +(normalH * taux).toFixed(2);
+  const brutSupp   = +(suppH   * taux * 1.75).toFixed(2);
+  const brutTotal  = +(brutNormal + brutSupp).toFixed(2);
+  const netAuto    = +(brutTotal - avance).toFixed(2);
+  return {
+    normalH:  +normalH.toFixed(1),
+    suppH:    +suppH.toFixed(1),
+    totalH:   +(normalH + suppH).toFixed(1),
+    workedDays,
+    brutNormal,
+    brutSupp,
+    brutTotal,
+    netAuto,
+  };
+}
+
+/* ── MONTH helpers ───────────────────────────────────── */
+const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MONTHS_AR = ['جانفي','فيفري','مارس','أفريل','ماي','جوان','جويلية','أوت','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const DAYS_FR   = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const DAYS_AR   = ['أحد','إثن','ثلا','أرب','خمي','سبت','أحد'];
+
+function genDefaultHours(year, month){
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const o = {};
+  for(let i = 1; i <= daysInMonth; i++){
+    const wd = new Date(year, month-1, i).getDay();
+    if(wd === 0)      o[i] = 0;                                    // Sunday: 0 default
+    else if(wd === 6) o[i] = +(4 + Math.random()*1.5).toFixed(1); // Saturday
+    else              o[i] = +(7.5 + Math.random()*1).toFixed(1); // Mon–Fri
+  }
+  return o;
+}
+
+/* ══════════════════════════════════════════════════════
+   ADMIN APPLICATION LOGIC
+══════════════════════════════════════════════════════ */
+
+let CAdmin = null;
+const _now = new Date();
+let curHoursUser = null, curHoursYear = _now.getFullYear(), curHoursMonth = _now.getMonth() + 1;
+let curHoursData = {};
+
+/* ── INIT ─────────────────────────────────────────────── */
+
+
+/* ── AUTH ─────────────────────────────────────────────── */
+async function aLogin(){
+  const u = document.getElementById('au').value.trim().toLowerCase();
+  const p = document.getElementById('ap').value.trim();
+  document.getElementById('aerr').classList.remove('on');
+  const btn = document.querySelector('.btn-aconnect');
+  const resetBtn = () => { if(btn){btn.textContent='Accéder au tableau de bord';btn.disabled=false;} };
+
+  if(!u || !p){
+    document.getElementById('aerr').textContent = 'Identifiant et mot de passe requis';
+    document.getElementById('aerr').classList.add('on');
+    return;
+  }
+
+  if(btn){btn.textContent='...';btn.disabled=true;}
+
+  // Timeout protection 15s — évite blocage infini sur "..."
+  const loginTimeout = setTimeout(() => {
+    resetBtn();
+    document.getElementById('aerr').textContent = 'Délai dépassé. Vérifiez votre connexion et réessayez.';
+    document.getElementById('aerr').classList.add('on');
+  }, 15000);
+
+  try{
+    if(u !== 'admin.rh' || !(await checkAdminPwd(p))){
+      clearTimeout(loginTimeout);
+      document.getElementById('aerr').classList.add('on');
+      document.getElementById('ap').value = '';
+      resetBtn();
+      return;
+    }
+    clearTimeout(loginTimeout);
+    CAdmin = {name: 'Responsable RH'};
+    resetBtn();
+    const remember = document.getElementById('a-remember');
+    if(remember && remember.checked) saveAdminSession();
+    const pwdChanged = await dbGet('admin/pwd_changed');
+    if(!pwdChanged){
+      showS('achpwd');
+      document.getElementById('achpwd-sub').textContent = 'Première connexion. Définissez un mot de passe confidentiel.';
+      document.getElementById('achpwd-skip').style.display = 'none';
+      return;
+    }
+    showS('adash');
+    buildDash();
+    startNotifications();
+    getReqs().then(r=>{ lastReqCount=r.filter(x=>x.status==='pending').length; });
+  }catch(e){
+    clearTimeout(loginTimeout);
+    document.getElementById('aerr').textContent = 'Erreur de connexion. Réessayez.';
+    document.getElementById('aerr').classList.add('on');
+    resetBtn();
+    console.error('Admin login error:',e);
+  }
+}
+
+document.getElementById('ap').addEventListener('keydown', e => { if(e.key==='Enter') aLogin(); });
+document.getElementById('au').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('ap').focus(); });
+
+async function doAdminChangePwd(){
+  const old = document.getElementById('acp-old').value;
+  const nw  = document.getElementById('acp-new').value;
+  const cf  = document.getElementById('acp-conf').value;
+  const err = document.getElementById('acp-err');
+  err.style.display = 'none';
+  if(!(await checkAdminPwd(old))){ err.textContent='Mot de passe actuel incorrect'; err.style.display='block'; return; }
+  if(nw.length < 6){ err.textContent='Minimum 6 caractères'; err.style.display='block'; return; }
+  if(nw !== cf){ err.textContent='Ne correspondent pas'; err.style.display='block'; return; }
+  await saveAdminPwd(nw);
+  toast('Mot de passe admin mis à jour ✅','','ok');
+  showS('adash'); buildDash();
+}
+
+function skipAdminPwd(){ dbSet('admin/pwd_changed', true); showS('adash'); buildDash(); }
+
+function openAdminChangePwd(){
+  document.getElementById('achpwd-sub').textContent = 'Modifier votre mot de passe administrateur.';
+  document.getElementById('achpwd-skip').style.display = 'block';
+  ['acp-old','acp-new','acp-conf'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('acp-err').style.display = 'none';
+  showS('achpwd');
+}
+
+function aLogout(){
+  CAdmin=null;
+  clearAdminSession();
+  stopNotifications();
+  showS('alogin');
+  document.getElementById('au').value='';
+  document.getElementById('ap').value='';
+  toast('Déconnexion','👋','info');
+}
+function showS(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+/* ── TABS ─────────────────────────────────────────────── */
+function aTab(tab, btn){
+  document.querySelectorAll('.apanel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.atab').forEach(b => b.classList.remove('on'));
+  document.getElementById('ap-'+tab).classList.add('on');
+  if(btn) btn.classList.add('on');
+  if(tab==='reqs')    buildAReqs('all');
+  if(tab==='workers') buildAWorkers();
+  if(tab==='hours')   buildHoursAdmin();
+  if(tab==='ptg')     initPtgTab();
+  if(tab==='msgs')    buildAMsgs();
+}
+
+/* ── DASHBOARD ────────────────────────────────────────── */
+async function buildDash(){
+  const [WK, REQS, MSGS] = await Promise.all([getWorkers(), getReqs(), getMsgs()]);
+  const pending  = REQS.filter(r => r.status==='pending').length;
+  const approved = REQS.filter(r => r.status==='approved').length;
+  const unread   = MSGS.filter(m => m.unread).length;
+  document.getElementById('aStats').innerHTML = `
+    <div class="ast" onclick="aTab('workers',document.querySelector('[onclick*=workers]'))" style="cursor:pointer" title="Voir les ouvriers">
+      <div class="ast-val s">${WK.length}</div><div class="ast-lbl">Ouvriers ›</div>
+    </div>
+    <div class="ast" onclick="aTab('reqs',document.querySelector('[onclick*=reqs]'));aFilterReq('pending',null)" style="cursor:pointer" title="Voir les demandes en attente">
+      <div class="ast-val a">${pending}</div><div class="ast-lbl">En attente ›</div>
+    </div>
+    <div class="ast" onclick="aTab('reqs',document.querySelector('[onclick*=reqs]'));aFilterReq('approved',null)" style="cursor:pointer" title="Voir les demandes approuvées">
+      <div class="ast-val g">${approved}</div><div class="ast-lbl">Approuvées ›</div>
+    </div>
+    <div class="ast" onclick="aTab('msgs',document.querySelector('[onclick*=msgs]'))" style="cursor:pointer" title="Voir les messages">
+      <div class="ast-val r">${unread}</div><div class="ast-lbl">Messages ›</div>
+    </div>`;
+  const pendReqs = REQS.filter(r => r.status==='pending').slice(0,3);
+  document.getElementById('aPendingList').innerHTML = pendReqs.length
+    ? pendReqs.map(r => arCard(r)).join('')
+    : '<div class="empty"><div class="empty-ico">✅</div><p>Aucune demande en attente</p></div>';
+  document.getElementById('aActivity').innerHTML = REQS.slice(0,5).map(r => `
+    <div onclick="aTab('reqs',document.querySelector('[onclick*=reqs]'))" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .15s;border-radius:6px;padding-left:6px;padding-right:6px" onmouseover="this.style.background='var(--ink3)'" onmouseout="this.style.background=''">
+      <span style="font-size:15px">${r.status==='approved'?'✅':r.status==='rejected'?'❌':'⏳'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500">${r.name} – ${r.type}</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:2px">${r.date}</div>
+      </div>
+      <span class="badge ${r.status==='approved'?'ok':r.status==='rejected'?'no':'wait'}">${r.status==='approved'?'OK':r.status==='rejected'?'Refusé':'Attente'} ›</span>
+    </div>`).join('');
+}
+
+/* ── REQUESTS ─────────────────────────────────────────── */
+function arCard(r){
+  const done = r.status !== 'pending';
+  return `<div class="ar-card ${r.status==='approved'?'approved':r.status==='rejected'?'rejected':''}" id="arc-${r.id}">
+    <div class="ar-top"><span class="ar-emp">👷 ${r.name}</span><span class="ar-type">${r.type}</span></div>
+    <div class="ar-detail">${r.detail}${r.note?'<br><em>'+r.note+'</em>':''}<br><small style="color:var(--ink4)">📅 ${r.date}</small></div>
+    ${done
+      ? `<div class="ar-done">${r.status==='approved'?'✅ Approuvée':'❌ Refusée'}</div>`
+      : `<div class="ar-actions">
+           <button class="btn-ok" onclick="aAct(${r.id},'approved')">✅ Approuver</button>
+           <button class="btn-no" onclick="aAct(${r.id},'rejected')">❌ Refuser</button>
+         </div>`}
+  </div>`;
+}
+
+async function aAct(id, status){
+  const REQS = await getReqs();
+  const r = REQS.find(x => x.id === id);
+  if(!r) return;
+  r.status = status;
+  await saveReqs(REQS);
+  // Update UI immediately
+  document.querySelectorAll(`#arc-${id}`).forEach(el => {
+    el.className = `ar-card ${status==='approved'?'approved':'rejected'}`;
+    const actDiv = el.querySelector('.ar-actions') || el.querySelector('.ar-done');
+    if(actDiv) actDiv.outerHTML = `<div class="ar-done">${status==='approved'?'✅ Approuvée':'❌ Refusée'}</div>`;
+  });
+  buildDash();
+  const msg = status==='approved'?`✅ Approuvée – visible par l'employé`:`❌ Refusée`;
+  toast(msg,'',status==='approved'?'ok':'err');
+  addNotif(
+    status==='approved'?'Demande approuvée ✅':'Demande refusée ❌',
+    `${r.name} – ${r.type}`,
+    status==='approved'?'✅':'❌', 'reqs'
+  );
+}
+
+function aFilterReq(f, btn){
+  document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  buildAReqs(f);
+}
+
+async function buildAReqs(f){
+  const REQS = await getReqs();
+  const list = REQS.filter(r => f==='all' || r.status===f);
+  document.getElementById('aReqList').innerHTML = list.length
+    ? list.map(r => arCard(r)).join('')
+    : '<div class="empty"><div class="empty-ico">📭</div><p>Aucune demande</p></div>';
+}
+
+/* ── HOURS + SALARY ADMIN ─────────────────────────────── */
+async function buildHoursAdmin(){
+  const WK = await getWorkers();
+  const sel = document.getElementById('hours-worker-sel');
+  sel.innerHTML = '<option value="">— Sélectionner un ouvrier —</option>' +
+    WK.map(w => `<option value="${w.username}">${w.name} (${w.id})</option>`).join('');
+  if(curHoursUser) sel.value = curHoursUser;
+  document.getElementById('hours-month-sel').value = `${curHoursYear}-${String(curHoursMonth).padStart(2,'0')}`;
+  if(curHoursUser) await loadHoursGrid();
+}
+
+async function onHoursWorkerChange(){
+  curHoursUser = document.getElementById('hours-worker-sel').value || null;
+  if(curHoursUser) await loadHoursGrid();
+  else document.getElementById('hours-grid').innerHTML = '<p style="color:var(--steel);text-align:center;padding:30px">Sélectionnez un ouvrier.</p>';
+}
+
+async function onHoursMonthChange(){
+  const val = document.getElementById('hours-month-sel').value;
+  if(val){ const [y,m]=val.split('-'); curHoursYear=+y; curHoursMonth=+m; }
+  if(curHoursUser) await loadHoursGrid();
+}
+
+async function loadHoursGrid(){
+  const grid = document.getElementById('hours-grid');
+  if(!curHoursUser){ grid.innerHTML='<p style="color:var(--steel);text-align:center;padding:30px">Sélectionnez un ouvrier.</p>'; return; }
+  grid.innerHTML = '<p style="color:var(--steel);text-align:center;padding:20px">⏳ Chargement...</p>';
+  try{
+  // Use cached workers first, then Firebase
+  let WK = WORKERS_CACHE && WORKERS_CACHE.length ? WORKERS_CACHE : await getWorkers();
+  let w = WK.find(x => x.username === curHoursUser);
+  if(!w){
+    // Try refreshing from Firebase in case it's a new worker
+    WK = await getWorkers(); WORKERS_CACHE = WK;
+    w = WK.find(x => x.username === curHoursUser);
+  }
+  if(!w){ grid.innerHTML='<p style="color:var(--ruby);text-align:center;padding:20px">Ouvrier non trouvé.<br><small>Vérifiez que le compte a bien été enregistré.</small></p>'; return; }
+
+  // Load hours (from Firebase or default)
+  let h = await getHours(curHoursUser, curHoursYear, curHoursMonth);
+  if(!h) h = genDefaultHours(curHoursYear, curHoursMonth);
+  curHoursData = h;
+
+  // Load salary override if any
+  const override = await getSalaryOverride(curHoursUser, curHoursYear, curHoursMonth);
+  const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
+  const netFinal = (override && override.net_override !== undefined) ? override.net_override : s.netAuto;
+
+  const monthLabel = MONTHS_FR[curHoursMonth-1] + ' ' + curHoursYear;
+
+  grid.innerHTML = `
+    <!-- Summary cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      <div style="background:var(--ink3);border:1px solid var(--border);border-radius:9px;padding:10px;text-align:center">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--amber)" id="sum-n">${s.normalH}h</div>
+        <div style="font-size:10px;color:var(--steel);margin-top:3px">Normales</div>
+      </div>
+      <div style="background:var(--ink3);border:1px solid var(--border);border-radius:9px;padding:10px;text-align:center">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--sky)" id="sum-s">${s.suppH}h</div>
+        <div style="font-size:10px;color:var(--steel);margin-top:3px">Supp. (dim.)</div>
+      </div>
+      <div style="background:var(--ink3);border:1px solid rgba(46,160,67,.3);border-radius:9px;padding:10px;text-align:center">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--jade)" id="sum-auto">${s.netAuto.toLocaleString('fr-TN')} DT</div>
+        <div style="font-size:10px;color:var(--steel);margin-top:3px">Salaire auto</div>
+      </div>
+    </div>
+
+    <!-- Salary override section -->
+    <div style="background:rgba(232,160,32,.06);border:1.5px solid rgba(232,160,32,.2);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">
+        💵 Salaire Net Final – ${monthLabel}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="flex:1">
+          <label style="font-size:11px;color:var(--steel);display:block;margin-bottom:5px">Montant net final (DT)</label>
+          <input type="number" id="sal-override" value="${netFinal}" step="0.01"
+            style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--white);font-size:16px;font-family:var(--mono);font-weight:600"
+            onchange="previewOverride(this.value)"/>
+        </div>
+        <div style="font-size:22px;color:var(--steel);margin-top:18px">DT</div>
+      </div>
+      <div style="margin-bottom:8px">
+        <label style="font-size:11px;color:var(--steel);display:block;margin-bottom:5px">Note / motif de retenue</label>
+        <input type="text" id="sal-note" value="${override?.note||''}" placeholder="ex: Retenue CNSS 9%, Absence..."
+          style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--white);font-size:13px"/>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="saveHoursAndSalary()" style="flex:2;padding:11px;border-radius:8px;background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif">
+          💾 Enregistrer heures + salaire
+        </button>
+        <button onclick="resetOverride()" style="flex:1;padding:11px;border-radius:8px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:12px;font-weight:600;font-family:'Barlow Condensed',sans-serif">
+          ↺ Recalc auto
+        </button>
+      </div>
+      ${override?.net_override !== undefined ? `<div style="margin-top:8px;font-size:11px;color:var(--amber)">⚠️ Salaire modifié manuellement (calcul auto : ${s.netAuto.toLocaleString('fr-TN')} DT)</div>` : ''}
+    </div>
+
+    <!-- Day headers -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px">
+      ${DAYS_FR.map(d=>`<div style="text-align:center;font-size:9px;font-weight:700;color:var(--steel);padding:3px 0">${d}</div>`).join('')}
+    </div>
+
+    <!-- Calendar grid -->
+    ${buildDayGrid(h, curHoursYear, curHoursMonth)}`;
+  }catch(e){
+    console.error('loadHoursGrid error:',e);
+    document.getElementById('hours-grid').innerHTML=
+      '<div style="text-align:center;padding:20px;color:var(--ruby)">❌ Erreur de chargement<br><button onclick="loadHoursGrid()" style="margin-top:10px;padding:8px 16px;border-radius:8px;background:var(--amber);color:var(--ink);font-weight:700">Réessayer</button></div>';
+  }
+}
+
+function buildDayGrid(h, year, month){
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const fdWd = new Date(year, month-1, 1).getDay();
+  let cells = [];
+  for(let i=0; i<fdWd; i++) cells.push(null);
+  for(let d=1; d<=daysInMonth; d++) cells.push(d);
+  while(cells.length % 7 !== 0) cells.push(null);
+
+  let html = '';
+  for(let w=0; w<cells.length; w+=7){
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px">';
+    for(let ci=0; ci<7; ci++){
+      const d = cells[w+ci];
+      if(!d){ html += '<div style="background:var(--ink3);border-radius:6px;opacity:.3;min-height:50px"></div>'; continue; }
+      const wd  = new Date(year, month-1, d).getDay();
+      const hrs = h[d] || 0;
+      const isSun=wd===0, isSat=wd===6;
+      const bg  = isSun?'rgba(88,166,255,.08)':isSat?'rgba(188,140,255,.08)':'var(--ink3)';
+      const bc  = isSun?'rgba(88,166,255,.3)':isSat?'rgba(188,140,255,.25)':'var(--border)';
+      const col = isSun?'var(--sky)':isSat?'var(--violet)':hrs>0?'var(--jade)':'var(--steel)';
+      html += `<div style="background:${bg};border:1px solid ${bc};border-radius:6px;padding:3px;min-height:50px;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <span style="font-size:8px;color:var(--steel);font-weight:700">${DAYS_FR[wd]}</span>
+        <span style="font-size:11px;font-weight:600">${d}</span>
+        <input type="number" min="0" max="14" step="0.5" value="${hrs}" id="hday-${d}"
+          style="width:100%;background:transparent;border:none;color:${col};font-size:11px;text-align:center;font-family:var(--mono)"
+          onchange="onHourCellChange()"/>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+function onHourCellChange(){
+  // Recalculate auto salary on change
+  const WK_cache = WORKERS_CACHE;
+  // Quick read
+  const daysInMonth = new Date(curHoursYear, curHoursMonth, 0).getDate();
+  const h = {};
+  for(let d=1; d<=daysInMonth; d++){
+    const el = document.getElementById('hday-'+d);
+    if(el) h[d] = parseFloat(el.value)||0;
+  }
+  curHoursData = h;
+}
+
+function previewOverride(val){
+  // Just visual feedback – actual save on button click
+}
+
+function resetOverride(){
+  // Recalculate from current hours grid
+  const daysInMonth = new Date(curHoursYear, curHoursMonth, 0).getDate();
+  const h = {};
+  for(let d=1; d<=daysInMonth; d++){
+    const el = document.getElementById('hday-'+d);
+    if(el) h[d] = parseFloat(el.value)||0;
+  }
+  getWorkers().then(WK => {
+    const w = WK.find(x=>x.username===curHoursUser);
+    if(!w) return;
+    const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
+    document.getElementById('sal-override').value = s.netAuto;
+    document.getElementById('sal-note').value = '';
+    document.getElementById('sum-auto').textContent = s.netAuto.toLocaleString('fr-TN') + ' DT';
+  });
+}
+
+
+async function saveHoursAndSalary(){
+  if(!curHoursUser){ toast('Sélectionnez un ouvrier','⚠️'); return; }
+  const daysInMonth = new Date(curHoursYear, curHoursMonth, 0).getDate();
+  const h = {};
+  for(let d=1; d<=daysInMonth; d++){
+    const el = document.getElementById('hday-'+d);
+    if(el) h[d] = parseFloat(el.value)||0;
+  }
+  const overrideVal = parseFloat(document.getElementById('sal-override').value);
+  const noteVal = document.getElementById('sal-note').value.trim();
+
+  // Get auto-calculated for comparison
+  const WK = await getWorkers();
+  const w = WK.find(x => x.username === curHoursUser);
+  const s = w ? calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth) : null;
+  const isManual = s && Math.abs(overrideVal - s.netAuto) > 0.01;
+
+  await saveHours(curHoursUser, curHoursYear, curHoursMonth, h);
+  await saveSalaryOverride(curHoursUser, curHoursYear, curHoursMonth, {
+    net_override: overrideVal,
+    note: noteVal,
+    is_manual: isManual,
+    net_auto: s ? s.netAuto : null,
+    saved_at: new Date().toISOString()
+  });
+
+  toast(`✅ Heures et salaire sauvegardés — visibles par l'employé`,'','ok');
+  await loadHoursGrid(); // refresh
+}
+
+async function goHoursForWorker(username){
+  curHoursUser = username;
+  aTab('hours', null);
+  document.querySelectorAll('.atab').forEach(t => { if(t.textContent.includes('Heures')) t.classList.add('on'); });
+  await buildHoursAdmin();
+  document.getElementById('hours-worker-sel').value = username;
+  await loadHoursGrid();
+}
+
+/* ── WORKERS ──────────────────────────────────────────── */
+async function buildAWorkers(){
+  document.getElementById('aWorkerList').innerHTML='<div style="text-align:center;padding:30px;color:var(--steel)">Chargement...</div>';
+  const WK = await getWorkers();
+  WORKERS_CACHE = WK;
+  if(!WK || WK.length===0){
+    document.getElementById('aWorkerList').innerHTML='<div style="text-align:center;padding:30px;color:var(--steel)">Aucun ouvrier trouvé. <br><button onclick="openCreateAccount()" style="margin-top:10px;padding:10px 20px;border-radius:8px;background:var(--amber);color:var(--ink);font-weight:700">➕ Créer un compte</button></div>';
+    return;
+  }
+  // Load passwords once for all workers (keys use fbKey format)
+  const pwdsData = await dbGet('passwords') || {};
+  const pwdChangedData = await dbGet('pwd_changed') || {};
+
+  const addBtn = `<button onclick="openCreateAccount()" style="width:100%;margin-bottom:10px;padding:14px;border-radius:var(--r);background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:14px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.6px;display:flex;align-items:center;justify-content:center;gap:8px">➕ Créer un nouveau compte employé</button>
+<div style="position:relative;margin-bottom:14px">
+  <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--steel);font-size:15px;pointer-events:none">🔍</span>
+  <input id="wk-search" type="text" placeholder="Rechercher un employé (nom, prénom, matricule…)" oninput="filterWorkers()" style="width:100%;box-sizing:border-box;background:var(--ink3);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 12px 11px 38px;color:var(--white);font-size:13px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border)'"/>
+</div>
+<div id="wk-no-result" style="display:none;text-align:center;padding:20px;color:var(--steel);font-size:13px">Aucun employé trouvé.</div>`;
+
+  // Render workers with basic info FIRST (fast), then load hours async per card
+  const cards = WK.map((w, i) => {
+    // Use fbKey to match how passwords are stored (dots→underscores)
+    const key = fbKey(w.username);
+    const effPass = pwdsData[key] || w.pass || w.tel;
+    const changed = !!(pwdChangedData[key]);
+    const pwdTxt = changed ? `✅ Modifié (${effPass})` : `🔑 ${effPass}`;
+    const h = genDefaultHours(curHoursYear, curHoursMonth); // use default initially
+    const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
+    const netFinal = s.netAuto;
+    const ovr = null;
+
+    return `<div>
+      <div class="wk-row">
+        <div class="wk-av">${(w.prenom||'?')[0]}${(w.nom||'')[0]||''}</div>
+        <div class="wk-info"><div class="wk-name">${w.name}</div><div class="wk-sub">${w.id} · ${w.taux} DT/h</div></div>
+        <div class="wk-hrs">${s.totalH}h</div>
+        <button class="wk-expand-btn" onclick="toggleW(${i})">▼</button>
+      </div>
+      <div class="wk-detail" id="wd-${i}">
+        <div style="background:rgba(232,160,32,.07);border:1px solid rgba(232,160,32,.15);border-radius:9px;padding:12px;margin-bottom:10px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">🔐 Accès application</div>
+          <div class="wk-detail-row"><span class="wk-detail-lbl">Identifiant</span><span class="wk-detail-val" style="color:var(--amber);font-family:var(--mono)">${w.username}</span></div>
+          <div class="wk-detail-row"><span class="wk-detail-lbl">Mot de passe</span><span class="wk-detail-val" style="color:${changed?'var(--jade)':'var(--amber)'}">${pwdTxt}</span></div>
+          <div style="display:flex;gap:7px;margin-top:10px">
+            <button onclick="resetPwd('${w.username}','${w.name}','${w.pass||w.tel}')" style="flex:1;padding:9px;border-radius:8px;background:rgba(218,54,51,.1);border:1px solid rgba(218,54,51,.25);color:var(--ruby);font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif">🔄 Réinitialiser</button>
+            <button onclick="setCustomPwd('${w.username}','${w.name}')" style="flex:1;padding:9px;border-radius:8px;background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.25);color:var(--amber);font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif">🔑 Nouveau MDP</button>
+            <button onclick="showCredentials('${w.username}','${w.name}','${effPass}')" style="flex:1;padding:9px;border-radius:8px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.25);color:var(--sky);font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif">📋 Fiche</button>
+          </div>
+        </div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">H. normales</span><span class="wk-detail-val">${s.normalH}h</span></div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">H. supp.</span><span class="wk-detail-val">${s.suppH}h</span></div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">Jours travaillés</span><span class="wk-detail-val">${s.workedDays}j</span></div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">Avance</span><span class="wk-detail-val">${w.avance} DT</span></div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">Salaire calculé</span><span class="wk-detail-val">${s.netAuto.toLocaleString('fr-TN')} DT</span></div>
+        <div class="wk-detail-row" style="background:rgba(232,160,32,.06);border-radius:7px;padding:8px 10px;margin:4px 0">
+          <span class="wk-detail-lbl" style="color:var(--amber);font-weight:700">💵 Net final</span>
+          <span class="wk-detail-val" style="color:var(--amber);font-size:15px">${netFinal.toLocaleString('fr-TN')} DT${ovr?.is_manual?' ✏️':''}</span>
+        </div>
+        ${ovr?.note ? `<div style="font-size:11px;color:var(--steel);margin:4px 10px">📝 ${ovr.note}</div>` : ''}
+        <div class="wk-detail-row"><span class="wk-detail-lbl">CIN</span><span class="wk-detail-val">${w.cin||'—'}</span></div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">CNSS</span><span class="wk-detail-val">${w.cnss||'—'}</span></div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">Téléphone</span><span class="wk-detail-val">${w.telDisplay||w.tel||'—'}</span></div>
+        <div class="wk-detail-row"><span class="wk-detail-lbl">Date début</span><span class="wk-detail-val">${w.debut||'—'}</span></div>
+        <div style="display:flex;gap:7px;margin-top:12px">
+          <button onclick="openEditAccount(${i})" style="flex:1;padding:10px;border-radius:8px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.25);color:var(--sky);font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif">✏️ Modifier</button>
+          <button onclick="goHoursForWorker('${w.username}')" style="flex:1;padding:10px;border-radius:8px;background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.25);color:var(--amber);font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif">🕐 Heures</button>
+          <button onclick="deleteAccount('${w.username}','${w.name}')" style="flex:1;padding:10px;border-radius:8px;background:rgba(218,54,51,.08);border:1px solid rgba(218,54,51,.2);color:var(--ruby);font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('aWorkerList').innerHTML = addBtn + cards.join('');
+  // Now load actual hours in background for each worker
+  WK.forEach(async (w, i) => {
+    try{
+      const h = await getHours(w.username, curHoursYear, curHoursMonth);
+      if(!h) return; // keep defaults
+      const ovr = await getSalaryOverride(w.username, curHoursYear, curHoursMonth);
+      const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
+      const netFinal = ovr?.net_override !== undefined ? ovr.net_override : s.netAuto;
+      // Update the specific worker row hours display
+      const hrsEl = document.querySelector(`#wd-${i} .wk-hrs-live`);
+      if(hrsEl) hrsEl.textContent = s.totalH+'h';
+      const netEl = document.querySelector(`#wd-${i} .net-final-live`);
+      if(netEl) netEl.textContent = netFinal.toLocaleString('fr-TN')+' DT';
+    }catch(e){}
+  });
+}
+
+function filterWorkers(){
+  const q = (document.getElementById('wk-search')?.value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#aWorkerList .wk-row');
+  let found = 0;
+  rows.forEach(row => {
+    const card = row.parentElement;
+    const name = (row.querySelector('.wk-name')?.textContent || '').toLowerCase();
+    const sub  = (row.querySelector('.wk-sub')?.textContent  || '').toLowerCase();
+    const match = !q || name.includes(q) || sub.includes(q);
+    card.style.display = match ? '' : 'none';
+    if(match) found++;
+  });
+  const noRes = document.getElementById('wk-no-result');
+  if(noRes) noRes.style.display = found === 0 ? 'block' : 'none';
+}
+
+function toggleW(i){ document.getElementById('wd-'+i).classList.toggle('on'); }
+
+/* ── PASSWORD MANAGEMENT ─────────────────────────────── */
+async function resetPwd(username, name, phoneDigits){
+  if(!confirm(`Réinitialiser le mot de passe de ${name} ?
+Nouveau mot de passe : ${phoneDigits}`)) return;
+  await resetWorkerPwd(username);
+  toast(`MDP de ${name} réinitialisé → ${phoneDigits}`,'🔄','ok');
+  buildAWorkers();
+}
+
+let pwdTarget = null;
+function setCustomPwd(username, name){
+  pwdTarget = {username, name};
+  document.getElementById('spwd-name').textContent = name;
+  document.getElementById('spwd-new').value = '';
+  document.getElementById('spwd-conf').value = '';
+  document.getElementById('spwd-err').classList.remove('on');
+  openModal('pwdModal');
+}
+function closePwdModal(){ closeModal('pwdModal'); pwdTarget = null; }
+async function confirmSetPwd(){
+  const nw  = document.getElementById('spwd-new').value;
+  const cf  = document.getElementById('spwd-conf').value;
+  const err = document.getElementById('spwd-err');
+  err.classList.remove('on');
+  if(nw.length < 4){ err.textContent='Minimum 4 caractères'; err.classList.add('on'); return; }
+  if(nw !== cf){ err.textContent='Ne correspondent pas'; err.classList.add('on'); return; }
+  await setWorkerPwd(pwdTarget.username, nw);
+  // Password saved in passwords/ node only — workers list untouched
+  toast(`MDP de ${pwdTarget.name} mis à jour`,'✅','ok');
+  closePwdModal(); buildAWorkers(); buildDash();
+}
+function showCredentials(username, name, pass){
+  document.getElementById('cred-name').textContent = name;
+  document.getElementById('cred-user').textContent = username;
+  document.getElementById('cred-pass').textContent = pass;
+  openModal('credModal');
+}
+function closeCredModal(){ closeModal('credModal'); }
+
+/* ── ACCOUNT CREATE/EDIT ─────────────────────────────── */
+let editTarget = null;
+function openCreateAccount(){
+  editTarget = null;
+  document.getElementById('acct-title').textContent = '➕ Créer un compte employé';
+  document.getElementById('acct-sub').textContent = `Les informations seront accessibles sur l'application employé.`;
+  document.getElementById('acct-username-row').style.display = 'block';
+  document.getElementById('acct-pass-row').style.display = 'block';
+  ['acct-nom','acct-prenom','acct-username','acct-pass','acct-tel','acct-cin','acct-cnss'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('acct-taux').value = '12';
+  document.getElementById('acct-poste').value = 'Ouvrier';
+  document.getElementById('acct-avance').value = '0';
+  document.getElementById('acct-err').classList.remove('on');
+  openModal('acctModal');
+}
+async function openEditAccount(idx){
+  const WK = await getWorkers();
+  const w = WK[idx];
+  editTarget = {idx, username: w.username};
+  document.getElementById('acct-title').textContent = '✏️ Modifier le compte';
+  document.getElementById('acct-sub').textContent = `Modification de ${w.name}`;
+  document.getElementById('acct-username-row').style.display = 'none';
+  document.getElementById('acct-pass-row').style.display = 'none';
+  document.getElementById('acct-nom').value   = w.nom||'';
+  document.getElementById('acct-prenom').value= w.prenom||'';
+  document.getElementById('acct-tel').value   = w.tel||'';
+  document.getElementById('acct-cin').value   = w.cin||'';
+  document.getElementById('acct-cnss').value  = w.cnss||'';
+  document.getElementById('acct-taux').value  = w.taux||12;
+  document.getElementById('acct-poste').value = w.poste||'Ouvrier';
+  document.getElementById('acct-debut').value = w.debut||'';
+  document.getElementById('acct-avance').value= w.avance||0;
+  document.getElementById('acct-err').classList.remove('on');
+  openModal('acctModal');
+}
+function closeAcctModal(){ closeModal('acctModal'); editTarget = null; }
+async function confirmAcct(){
+  const nom    = document.getElementById('acct-nom').value.trim();
+  const prenom = document.getElementById('acct-prenom').value.trim();
+  const tel    = document.getElementById('acct-tel').value.trim().replace(/\D/g,'').slice(-8);
+  const taux   = parseFloat(document.getElementById('acct-taux').value) || 12;
+  const err    = document.getElementById('acct-err');
+  err.classList.remove('on');
+  if(!nom || !prenom){ err.textContent='Nom et prénom requis'; err.classList.add('on'); return; }
+  if(!tel || tel.length < 6){ err.textContent='Téléphone invalide'; err.classList.add('on'); return; }
+  const WK = await getWorkers();
+  if(!editTarget){
+    const username = (document.getElementById('acct-username').value.trim().toLowerCase() ||
+      `${prenom.toLowerCase()}.${nom.toLowerCase()}`).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'');
+    const pass = document.getElementById('acct-pass').value || tel;
+    if(WK.find(x => x.username === username)){ err.textContent='Identifiant déjà utilisé'; err.classList.add('on'); return; }
+    const id = `GRB-${String(WK.length+1).padStart(3,'0')}`;
+    const newW = {username,nom,prenom,name:`${prenom} ${nom}`,id,taux,
+      cin:document.getElementById('acct-cin').value.trim(),
+      cnss:document.getElementById('acct-cnss').value.trim(),
+      tel, telDisplay:'+216 '+tel.slice(0,2)+' '+tel.slice(2,5)+' '+tel.slice(5),
+      debut:document.getElementById('acct-debut').value,
+      poste:document.getElementById('acct-poste').value||'Ouvrier',
+      avance:parseFloat(document.getElementById('acct-avance').value)||0, pass};
+    WK.push(newW);
+    await saveWorkers(WK);
+    closeAcctModal(); buildAWorkers(); buildDash();
+    setTimeout(() => showCredentials(username, newW.name, pass), 300);
+    toast(`Compte créé : ${newW.name}`,'✅','ok');
+  } else {
+    const idx = WK.findIndex(x => x.username === editTarget.username);
+    if(idx < 0){ closeAcctModal(); return; }
+    WK[idx] = {...WK[idx], nom, prenom, name:`${prenom} ${nom}`, taux,
+      cin:document.getElementById('acct-cin').value.trim(),
+      cnss:document.getElementById('acct-cnss').value.trim(),
+      tel, telDisplay:'+216 '+tel.slice(0,2)+' '+tel.slice(2,5)+' '+tel.slice(5),
+      debut:document.getElementById('acct-debut').value,
+      poste:document.getElementById('acct-poste').value||'Ouvrier',
+      avance:parseFloat(document.getElementById('acct-avance').value)||0};
+    await saveWorkers(WK);
+    toast(`${WK[idx].name} mis à jour`,'✅','ok');
+    closeAcctModal(); buildAWorkers(); buildDash();
+  }
+}
+async function deleteAccount(username, name){
+  if(!confirm(`Supprimer le compte de ${name} ?`)) return;
+  const WK = await getWorkers();
+  await saveWorkers(WK.filter(x => x.username !== username));
+  await dbSet(`passwords/${fbKey(username)}`, null);
+  await dbSet(`pwd_changed/${fbKey(username)}`, null);
+  toast(`Compte de ${name} supprimé`,'🗑️','err');
+  buildAWorkers(); buildDash();
+}
+
+/* ── MESSAGES ─────────────────────────────────────────── */
+async function buildAMsgs(){
+  // Populate recipient dropdown with workers
+  try{
+    const WK = WORKERS_CACHE && WORKERS_CACHE.length ? WORKERS_CACHE : await getWorkers();
+    const sel = document.getElementById('msg-dest');
+    if(sel){
+      sel.innerHTML = '<option value="all">📢 Tous les employés ('+WK.length+')</option>' +
+        WK.map(w=>`<option value="${w.username}">${w.name}</option>`).join('');
+    }
+  }catch(e){}
+
+  let MSGS=[];
+  try{ MSGS = await getMsgs(); }catch(e){ console.warn('getMsgs failed',e); }
+  // Group messages by employee username
+  const byUser = {};
+  MSGS.forEach(m => {
+    const u = m.user || m.from;
+    if(!byUser[u]) byUser[u] = [];
+    byUser[u].push(m);
+  });
+  const threads = Object.entries(byUser);
+
+  document.getElementById('aMsgList').innerHTML = !threads.length
+    ? '<div style="text-align:center;padding:24px;color:var(--steel)">Aucun message reçu</div>'
+    : threads.map(([user, msgs]) => {
+        const last = msgs[0];
+        const unread = msgs.some(m => m.unread);
+        const initials = last.from.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+        return `<div class="amsg-card ${unread?'unread':''}" onclick="openConv('${user}','${last.from.replace(/'/g,"\'")}')">
+          <div class="amsg-top">
+            <span class="amsg-from">👷 ${last.from} ${unread?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle"></span>':''}</span>
+            <span style="display:flex;align-items:center;gap:8px">
+              <span class="amsg-time">${last.time}</span>
+              <span style="font-size:10px;background:var(--ink3);border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--steel)">${msgs.length} msg${msgs.length>1?'s':''} 💬</span>
+            </span>
+          </div>
+          <div class="amsg-body" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${last.body}</div>
+          ${last.reply?`<div style="font-size:11px;color:var(--amber);margin-top:4px">↩ Répondu: ${last.reply.substring(0,60)}${last.reply.length>60?'…':''}</div>`:''}
+        </div>`;
+      }).join('');
+}
+// ── CONVERSATION PANEL ──────────────────────────────────
+let _convUser = null, _convName = null;
+
+async function openConv(username, displayName){
+  _convUser = username; _convName = displayName;
+  // Header
+  document.getElementById('conv-name').textContent = displayName;
+  document.getElementById('conv-sub').textContent = username;
+  const initials = displayName.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+  document.getElementById('conv-avatar').textContent = initials;
+  document.getElementById('conv-thread').innerHTML = '<div style="text-align:center;padding:20px;color:var(--steel);font-size:12px">Chargement…</div>';
+  // Show panel
+  const panel = document.getElementById('conv-panel');
+  const backdrop = document.getElementById('conv-backdrop');
+  panel.style.display = 'flex';
+  backdrop.style.display = 'block';
+  setTimeout(()=>{ panel.style.transform='translateX(0)'; },10);
+  document.getElementById('conv-reply-ta').value = '';
+  await renderConvThread(username);
+  // Mark as read
+  try{
+    const MSGS = await getMsgs();
+    let changed = false;
+    MSGS.forEach(m=>{ if((m.user===username||m.from.includes(displayName.split(' ')[0]))&&m.unread){ m.unread=false; changed=true; }});
+    if(changed){ await saveMsgs(MSGS); buildDash(); buildAMsgs(); }
+  }catch(e){}
+}
+
+async function renderConvThread(username){
+  const thread = document.getElementById('conv-thread');
+  try{
+    // Get messages FROM employee (stored in 'messages')
+    const allMsgs = await getMsgs();
+    const empMsgs = allMsgs.filter(m => m.user === username || m.from === _convName);
+    // Get messages TO employee (admin replies stored in emp_messages)
+    const adminMsgs = await getEmpMsgs(username);
+    // Merge all into timeline
+    const timeline = [];
+    empMsgs.forEach(m => timeline.push({
+      dir:'emp', body:m.body, time:m.time, sender:_convName,
+      reply:m.reply||null, replyTime:m.replyTime||null, ts:m.id||0
+    }));
+    adminMsgs.forEach(m => timeline.push({
+      dir:'admin', body:m.body, time:m.time, sender:'الإدارة', ts:m.id||0
+    }));
+    // Sort by timestamp ascending
+    timeline.sort((a,b) => a.ts - b.ts);
+    if(!timeline.length){
+      thread.innerHTML = '<div style="text-align:center;padding:30px;color:var(--steel);font-size:12px">Aucun message dans cette conversation</div>';
+      return;
+    }
+    thread.innerHTML = timeline.map(msg => {
+      if(msg.dir === 'emp'){
+        return `<div style="display:flex;flex-direction:column;align-items:flex-start">
+          <div class="conv-bubble emp">
+            <div class="bub-sender">👷 ${msg.sender}</div>
+            ${msg.body}
+            <div class="bub-time">${msg.time}</div>
+          </div>
+          ${msg.reply ? `<div class="conv-bubble admin" style="margin-top:4px">
+            <div class="bub-sender">🛡️ Admin</div>
+            ${msg.reply}
+            <div class="bub-time">${msg.replyTime||''}</div>
+          </div>` : ''}
+        </div>`;
+      } else {
+        return `<div style="display:flex;flex-direction:column;align-items:flex-end">
+          <div class="conv-bubble admin">
+            <div class="bub-sender">🛡️ Admin</div>
+            ${msg.body}
+            <div class="bub-time">${msg.time}</div>
+          </div>
+        </div>`;
+      }
+    }).join('');
+    // Scroll to bottom
+    setTimeout(()=>{ thread.scrollTop = thread.scrollHeight; }, 50);
+  }catch(e){
+    thread.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ruby)">Erreur de chargement</div>';
+  }
+}
+
+function closeConv(){
+  const panel = document.getElementById('conv-panel');
+  const backdrop = document.getElementById('conv-backdrop');
+  panel.style.transform = 'translateX(100%)';
+  backdrop.style.display = 'none';
+  setTimeout(()=>{ panel.style.display='none'; }, 300);
+  _convUser = null; _convName = null;
+}
+
+async function sendConvReply(){
+  if(!_convUser){ toast('Aucune conversation ouverte','⚠️'); return; }
+  const ta = document.getElementById('conv-reply-ta');
+  const replyText = ta.value.trim();
+  if(!replyText){ toast('Écrivez une réponse','⚠️'); return; }
+  const btn = document.getElementById('conv-send-btn');
+  if(btn){ btn.textContent='…'; btn.disabled=true; }
+  try{
+    const now = new Date().toLocaleDateString('fr-TN');
+    const msgId = Date.now();
+    // Update original messages (mark read + store reply)
+    const MSGS = await getMsgs();
+    MSGS.forEach(m=>{
+      if((m.user===_convUser)&&!m.reply){ m.unread=false; m.reply=replyText; m.replyTime=now; }
+    });
+    await saveMsgs(MSGS);
+    // Push to employee inbox
+    await pushEmpMsg(_convUser, {
+      id:msgId, from:'الإدارة – الإخوة قربوج',
+      time:now, body:replyText, unread:true
+    });
+    ta.value='';
+    if(btn){ btn.textContent='📤 Envoyer — Ctrl+Entrée'; btn.disabled=false; }
+    toast('Message envoyé ✅','','ok');
+    await renderConvThread(_convUser);
+    buildDash(); buildAMsgs();
+  }catch(e){
+    if(btn){ btn.textContent='📤 Envoyer — Ctrl+Entrée'; btn.disabled=false; }
+    toast('Erreur envoi','❌','err');
+  }
+}
+
+/* ── MODAL HELPERS ────────────────────────────────────── */
+function openModal(id){ document.getElementById(id).classList.add('on'); }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+
+/* ── BROADCAST MESSAGING ─────────────────────────────── */
+function setQuickMsg(btn){
+  const ta = document.getElementById('msg-body-send');
+  if(ta) ta.value = btn.dataset.msg || '';
+  ta.focus();
+  // Move cursor to end
+  ta.selectionStart = ta.selectionEnd = ta.value.length;
+}
+
+async function sendBroadcast(){
+  const body = document.getElementById('msg-body-send').value.trim();
+  const dest = document.getElementById('msg-dest').value;
+  const statusEl = document.getElementById('broadcast-status');
+
+  if(!body){ toast(`Écrivez un message avant d'envoyer`,'⚠️'); return; }
+
+  const btn = document.querySelector('[onclick="sendBroadcast()"]');
+  if(btn){ btn.textContent='⏳ Envoi...'; btn.disabled=true; }
+  if(statusEl){ statusEl.style.display='block'; statusEl.style.color='var(--steel)'; statusEl.textContent='Envoi en cours...'; }
+
+  try{
+    const WK = WORKERS_CACHE && WORKERS_CACHE.length ? WORKERS_CACHE : await getWorkers();
+    const targets = dest==='all' ? WK : WK.filter(w=>w.username===dest);
+    const now = new Date().toLocaleDateString('fr-TN');
+    const msgObj = {
+      id: Date.now(),
+      from: 'الإدارة – الإخوة قربوج',
+      time: now,
+      body,
+      unread: true,
+      broadcast: dest==='all'
+    };
+
+    // Send to each target employee
+    const promises = targets.map(w => pushEmpMsg(w.username, msgObj));
+    await Promise.all(promises);
+
+    // Also send browser notification if permission granted
+    if(Notification.permission==='granted'){
+      sendNotif('Message envoyé ✅', `${targets.length} employé(s) notifié(s)`);
+    }
+
+    document.getElementById('msg-body-send').value = '';
+    if(btn){ btn.textContent='📤 Envoyer le message'; btn.disabled=false; }
+    if(statusEl){
+      statusEl.style.color='var(--jade)';
+      statusEl.textContent = `✅ Message envoyé à ${targets.length} employé(s)`;
+      setTimeout(()=>{ statusEl.style.display='none'; }, 4000);
+    }
+    toast(`Message envoyé à ${targets.length} employé(s) ✅`,'','ok');
+    addNotif(`Message envoyé à ${targets.length} employé(s)`, body.substring(0,60)+(body.length>60?'...':''), '📢', 'msgs');
+  }catch(e){
+    console.error('sendBroadcast error:',e);
+    if(btn){ btn.textContent='📤 Envoyer le message'; btn.disabled=false; }
+    if(statusEl){ statusEl.style.color='var(--ruby)'; statusEl.textContent=`❌ Erreur d'envoi`; }
+    toast('Erreur envoi. Réessayez.','❌','err');
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   POINTAGE ADMIN — Lecture & affichage
+══════════════════════════════════════════════════ */
+const SCHEDULE_ADMIN = {
+  morningEntry: {h:7, m:30}, morningExit: {h:12, m:30},
+  afternoonEntry: {h:13, m:15}, afternoonExit: {h:16, m:45},
+  lateGrace: 3
+};
+
+function initPtgTab(){
+  const d = document.getElementById('ptg-date');
+  if(d && !d.value){
+    d.value = new Date().toISOString().split('T')[0];
+    loadPtgRecords();
+  }
+}
+
+async function loadPtgRecords(){
+  const dateEl = document.getElementById('ptg-date');
+  if(!dateEl||!dateEl.value) return;
+  const [y,m,day] = dateEl.value.split('-');
+  const dateKey = `${day}-${m}-${y}`; // Firebase key: DD-MM-YYYY
+
+  const el = document.getElementById('ptg-records');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--steel)">⏳ Chargement...</div>';
+
+  let records = [];
+  try{
+    if(USE_FIREBASE){
+      const snap = await DB.ref(`pointage/${dateKey}`).get();
+      if(snap.exists()){
+        records = Object.values(snap.val()).filter(Boolean);
+      }
+    }
+  }catch(e){ console.error('ptg load:',e); }
+
+  // Store records globally for edit lookup (avoids JSON-in-onclick issues)
+  window._lastPtgRecords = {};
+  window._lastPtgDateKey = dateKey;
+
+  // Sort by timestamp
+  records.sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+
+  // Get all workers to show absent
+  let allWorkers = [];
+  try{ allWorkers = await getWorkers(); }catch(e){}
+  const presentUsernames = [...new Set(records.map(r=>r.username))];
+  const absent = allWorkers.filter(w=>!presentUsernames.includes(w.username));
+  const lateCount = records.filter(r=>r.late && r.isEntry).length;
+
+  // Update stats
+  const statsEl = document.getElementById('ptg-stats');
+  if(statsEl){ statsEl.style.display='grid'; }
+  const addBtn = document.getElementById('btn-add-ptg');
+  if(addBtn) addBtn.style.display = 'block';
+  const ps = document.getElementById('ptg-stat-present');
+  const ls = document.getElementById('ptg-stat-late');
+  const as = document.getElementById('ptg-stat-absent');
+  if(ps) ps.textContent = presentUsernames.length;
+  if(ls) ls.textContent = lateCount;
+  if(as) as.textContent = absent.length;
+
+  if(!records.length && !absent.length){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:var(--steel)">Aucun pointage enregistré pour cette date</div>';
+    return;
+  }
+
+  // Group by employee
+  const byEmp = {};
+  records.forEach(r=>{
+    if(!byEmp[r.username]) byEmp[r.username]={name:r.name||r.username,id:r.id||'—',recs:[]};
+    // Store record by key for edit lookup
+    const rKey = r.key || (r.username + '_' + r.time + '_' + r.type);
+    r.key = r.key || rKey;
+    window._lastPtgRecords[r.key] = r;
+    byEmp[r.username].recs.push(r);
+  });
+
+  const typeLabel={morning_entry:'دخول ص',morning_exit:'خروج ظ',afternoon_entry:'دخول م',afternoon_exit:'خروج م',entry:'دخول',exit:'خروج'};
+
+  let html='';
+  // Present employees
+  if(Object.keys(byEmp).length){
+    html+='<div style="font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-family:var(--cond)">✅ الحاضرون ('+Object.keys(byEmp).length+')</div>';
+    Object.entries(byEmp).forEach(([user,emp])=>{
+      const initials=(emp.name||user).split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase();
+      const hasLate=emp.recs.some(r=>r.late&&r.isEntry);
+      html+=`<div style="background:var(--ink3);border:1px solid var(--border);border-radius:11px;padding:13px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="width:36px;height:36px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,var(--amber),var(--rust));display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:14px;font-weight:800;color:var(--ink)">${initials}</div>
+          <div style="flex:1"><div style="font-size:14px;font-weight:700">${emp.name}</div><div style="font-size:11px;color:var(--steel);font-family:var(--mono)">${emp.id}</div></div>
+          <div style="font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;${hasLate?'background:rgba(218,54,51,.12);color:var(--ruby);border:1px solid rgba(218,54,51,.2)':'background:rgba(46,160,67,.12);color:var(--jade);border:1px solid rgba(46,160,67,.2)'}">${hasLate?'⚠️ متأخر':'✅ في الوقت'}</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${emp.recs.map(r=>`<div style="background:${r.isEntry?'rgba(46,160,67,.08)':'rgba(88,166,255,.08)'};border:1px solid ${r.isEntry?'rgba(46,160,67,.2)':'rgba(88,166,255,.2)'};border-radius:8px;padding:7px 11px;display:flex;align-items:center;gap:7px;position:relative">
+            <span style="font-family:var(--mono);font-size:14px;font-weight:600;color:${r.late?'var(--ruby)':r.isEntry?'var(--jade)':'var(--sky)'}">${r.time}</span>
+            <span style="font-size:11px;color:var(--steel)">${typeLabel[r.type]||r.type}</span>
+            ${r.late?`<span style="font-size:10px;color:var(--ruby)">+${r.lateMin}د</span>`:''}
+            <button onclick="openPtgEditById('${dateKey}','${r.key||''}')" style="margin-left:4px;padding:3px 7px;border-radius:6px;background:rgba(232,160,32,.15);border:1px solid rgba(232,160,32,.3);color:var(--amber);font-size:11px;font-weight:700;cursor:pointer">✏️</button>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    });
+  }
+
+  // Absent employees
+  if(absent.length){
+    html+='<div style="font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 8px;font-family:var(--cond)">❌ الغائبون ('+absent.length+')</div>';
+    html+=absent.map(w=>{
+      const initials=w.name.split(' ').map(x=>x[0]||'').join('').substring(0,2).toUpperCase();
+      return`<div style="background:var(--ink3);border:1px solid var(--border);border-radius:11px;padding:13px;margin-bottom:8px;opacity:.7;display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--ink4);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:14px;font-weight:800;color:var(--steel)">${initials}</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--steel)">${w.name}</div><div style="font-size:11px;color:var(--ink4);font-family:var(--mono)">${w.id}</div></div>
+        <div style="font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;background:rgba(218,54,51,.08);color:var(--ruby);border:1px solid rgba(218,54,51,.15)">❌ غائب</div>
+      </div>`;
+    }).join('');
+  }
+
+  el.innerHTML = html;
+}
+
+function exportPtgCSV(){
+  const records = []; // TODO: collect from last loaded
+  const dateEl=document.getElementById('ptg-date');
+  if(!dateEl||!dateEl.value){toast('Sélectionnez une date','⚠️');return;}
+  toast('Export CSV en développement','ℹ️','info');
+}
+
+
+
+/* ══ ÉDITION POINTAGE PAR ADMIN ═══════════════════════════════ */
+let _ptgEditState = {}; // {dateKey, recKey, record}
+
+// Lookup function — évite JSON dans onclick (cause SyntaxError)
+function openPtgEditById(dateKey, recKey){
+  const record = window._lastPtgRecords[recKey] || {key: recKey, time:'', type:'entry'};
+  openPtgEdit(dateKey, recKey, record);
+}
+
+function openPtgEdit(dateKey, recKey, record){
+  _ptgEditState = {dateKey, recKey, record};
+  const modal = document.getElementById('ptg-edit-modal');
+  const info  = document.getElementById('ptg-edit-info');
+  const timeEl = document.getElementById('ptg-edit-time');
+  const typeEl = document.getElementById('ptg-edit-type');
+
+  info.textContent = `${record.name || record.username}  •  ${dateKey}`;
+  timeEl.value = record.time || '';
+  typeEl.value = record.type || 'entry';
+
+  modal.style.display = 'flex';
+}
+
+async function openAddPtg(){
+  const dateEl = document.getElementById('ptg-date');
+  if(!dateEl.value){ toast('Sélectionnez une date d\'abord','⚠️'); return; }
+  const [y,m,day] = dateEl.value.split('-');
+  const dateKey = `${day}-${m}-${y}`;
+
+  // Utiliser WORKERS_CACHE ou recharger depuis Firebase
+  const workers = (WORKERS_CACHE && WORKERS_CACHE.length) ? WORKERS_CACHE : await getWorkers();
+  if(!workers || !workers.length){ toast('Aucun employé chargé','⚠️'); return; }
+
+  // Ouvrir modal avec enregistrement vide
+  _ptgEditState = {
+    dateKey,
+    recKey: null, // null = nouvelle entrée
+    record: { username:'', name:'', time:'', type:'morning_entry', isEntry:true }
+  };
+
+  // Ajouter sélecteur employé dynamiquement
+  const info = document.getElementById('ptg-edit-info');
+  info.innerHTML = `<select id="ptg-add-worker" style="width:100%;background:var(--ink3);border:1px solid var(--border);border-radius:7px;padding:8px;color:var(--white);font-size:12px;margin-top:6px">
+    <option value="">— Choisir un employé —</option>
+    ${workers.map(w=>`<option value="${w.username}" data-name="${w.name}">${w.name} (${w.username})</option>`).join('')}
+  </select>`;
+
+  document.getElementById('ptg-edit-time').value = '08:00';
+  document.getElementById('ptg-edit-type').value = 'morning_entry';
+  document.getElementById('ptg-edit-modal').style.display = 'flex';
+  document.querySelector('#ptg-edit-modal div div:first-child').textContent = '➕ Ajouter un pointage';
+}
+
+function closePtgEdit(){
+  document.getElementById('ptg-edit-modal').style.display = 'none';
+  _ptgEditState = {};
+  // Remettre le titre original
+  const title = document.querySelector('#ptg-edit-modal div div:first-child');
+  if(title) title.textContent = '✏️ Modifier le pointage';
+}
+
+async function savePtgEdit(){
+  const {dateKey, recKey, record} = _ptgEditState;
+  const newTime = document.getElementById('ptg-edit-time').value;
+  const newType = document.getElementById('ptg-edit-type').value;
+
+  if(!newTime){ toast('Heure requise','⚠️'); return; }
+
+  // Si ajout, récupérer l'employé sélectionné
+  let username = record.username;
+  let name = record.name;
+  if(!recKey){
+    const sel = document.getElementById('ptg-add-worker');
+    if(!sel || !sel.value){ toast('Choisissez un employé','⚠️'); return; }
+    username = sel.value;
+    name = sel.options[sel.selectedIndex].dataset.name || username;
+  }
+
+  const isEntry = newType.includes('entry');
+  const updatedRecord = {
+    ...record,
+    username,
+    name,
+    time: newTime,
+    type: newType,
+    isEntry,
+    late: false,
+    lateMin: 0,
+    editedByAdmin: true,
+    editedAt: Date.now()
+  };
+
+  try{
+    if(!USE_FIREBASE){ toast('Firebase requis pour modifier','❌','err'); return; }
+
+    const key = recKey || DB.ref(`pointage/${dateKey}`).push().key;
+    updatedRecord.key = key;
+    await DB.ref(`pointage/${dateKey}/${key}`).set(updatedRecord);
+
+    toast(recKey ? 'Pointage modifié ✅' : 'Pointage ajouté ✅', '✅', 'ok');
+    closePtgEdit();
+    loadPtgRecords(); // Recharger la liste
+  }catch(e){
+    toast('Erreur: ' + e.message, '❌', 'err');
+  }
+}
+
+async function deletePtgRecord(){
+  const {dateKey, recKey} = _ptgEditState;
+  if(!recKey){ closePtgEdit(); return; }
+
+  const confirmed = confirm('Supprimer ce pointage définitivement ?');
+  if(!confirmed) return;
+
+  try{
+    await DB.ref(`pointage/${dateKey}/${recKey}`).remove();
+    toast('Pointage supprimé','🗑️');
+    closePtgEdit();
+    loadPtgRecords();
+  }catch(e){
+    toast('Erreur: ' + e.message,'❌','err');
+  }
+}
+/* ══ FIN ÉDITION POINTAGE ══════════════════════════════════════ */
+
+/* ── TOAST ────────────────────────────────────────────── */
+let tTimer;
+function toast(msg, ico='', type=''){
+  const t = document.getElementById('toast');
+  t.textContent = (ico ? ico+' ' : '') + msg;
+  t.className = 'toast on ' + (type||'');
+  clearTimeout(tTimer);
+  tTimer = setTimeout(() => t.classList.remove('on'), 3000);
+}
+
+/* ── ADMIN PWA INSTALL ───────────────────────────────── */
+let dPrAdmin = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  dPrAdmin = e;
+  const box = document.getElementById('admin-install-box');
+  const guide = document.getElementById('admin-install-guide');
+  if(box) box.style.display = 'block';
+  if(guide) guide.style.display = 'none';
+});
+
+window.addEventListener('appinstalled', () => {
+  dPrAdmin = null;
+  const box = document.getElementById('admin-install-box');
+  if(box) box.style.display = 'none';
+  toast('✅ App Admin installée sur ce téléphone','','ok');
+});
+
+function triggerAdminInstall(){
+  if(dPrAdmin){
+    dPrAdmin.prompt();
+    dPrAdmin.userChoice.then(r=>{
+      if(r.outcome==='accepted'){
+        toast('✅ Installation en cours...','📲','ok');
+        dPrAdmin=null;
+        const box=document.getElementById('admin-install-box');
+        if(box) box.style.display='none';
+      }
+    });
+  } else {
+    showAdminInstallGuide();
+  }
+}
+
+function showAdminInstallGuide(){
+  toast('Android: ⋮ → Installer | iPhone Safari: □↑ → Écran accueil','📲','info');
+}
+
+// Show guide button if no prompt after 2s
+setTimeout(() => {
+  if(!dPrAdmin && !window.matchMedia('(display-mode: standalone)').matches){
+    const guide = document.getElementById('admin-install-guide');
+    if(guide) guide.style.display = 'block';
+  }
+}, 2000);
+
+/* ── STAY LOGGED IN ──────────────────────────────────── */
+function saveAdminSession(){
+  localStorage.setItem('garbouj_admin_session', JSON.stringify({
+    user:'admin.rh', savedAt: Date.now()
+  }));
+}
+function clearAdminSession(){
+  localStorage.removeItem('garbouj_admin_session');
+}
+function loadAdminSession(){
+  try{
+    const s = localStorage.getItem('garbouj_admin_session');
+    if(!s) return false;
+    const {savedAt} = JSON.parse(s);
+    const THIRTY_DAYS = 30*24*60*60*1000;
+    if(Date.now()-savedAt > THIRTY_DAYS){ clearAdminSession(); return false; }
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ── NOTIFICATIONS (poll Firebase every 30s for new requests) ── */
+let lastReqCount = 0;
+let notifInterval = null;
+let notifStore = []; // in-memory notification list
+
+/* ── NOTIFICATION PANEL ─────────────────────────────── */
+function toggleNotifPanel(){
+  const panel = document.getElementById('notif-panel');
+  const backdrop = document.getElementById('notif-backdrop');
+  if(!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  backdrop.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen) renderNotifPanel();
+}
+
+function renderNotifPanel(){
+  const el = document.getElementById('notif-list');
+  if(!el) return;
+  if(!notifStore.length){
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--steel);font-size:13px">Aucune notification</div>';
+    return;
+  }
+  el.innerHTML = notifStore.map((n,i) => `
+    <div onclick="notifClick(${i})" style="padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:${n.read?'transparent':'rgba(232,160,32,.04)'};transition:background .15s" onmouseover="this.style.background='var(--ink3)'" onmouseout="this.style.background='${n.read?'transparent':'rgba(232,160,32,.04)'}'">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <span style="font-size:20px;flex-shrink:0">${n.icon||'🔔'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:${n.read?'500':'700'};color:${n.read?'var(--steel)':'var(--white)'}">${n.title}</div>
+          <div style="font-size:12px;color:var(--steel);margin-top:3px;line-height:1.4">${n.body}</div>
+          <div style="font-size:10px;color:var(--ink4);margin-top:4px;font-family:'JetBrains Mono',monospace">${n.time}</div>
+        </div>
+        ${!n.read ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;margin-top:4px"></div>' : ''}
+      </div>
+    </div>`).join('');
+
+  // Update perm button
+  const permBtn = document.getElementById('notif-perm-btn');
+  if(permBtn){
+    if(Notification.permission === 'granted'){
+      permBtn.textContent = '✅ Notifications push activées';
+      permBtn.style.color = 'var(--jade)';
+    } else {
+      permBtn.textContent = '🔔 Activer les notifications push';
+      permBtn.style.color = 'var(--steel)';
+    }
+  }
+}
+
+function notifClick(idx){
+  const n = notifStore[idx];
+  if(!n) return;
+  n.read = true;
+  updateNotifBadge();
+  renderNotifPanel();
+  // Navigate to the relevant tab
+  if(n.tab){
+    toggleNotifPanel();
+    aTab(n.tab, document.querySelector(`[onclick*="${n.tab}"]`));
+  }
+}
+
+function markAllNotifsRead(){
+  notifStore.forEach(n => n.read = true);
+  updateNotifBadge();
+  renderNotifPanel();
+}
+
+function addNotif(title, body, icon='🔔', tab=null){
+  const now = new Date();
+  const time = now.toLocaleTimeString('fr-TN', {hour:'2-digit', minute:'2-digit'}) + ' – ' + now.toLocaleDateString('fr-TN');
+  notifStore.unshift({title, body, icon, tab, time, read:false, id:Date.now()});
+  if(notifStore.length > 50) notifStore = notifStore.slice(0,50); // keep last 50
+  updateNotifBadge();
+  // Also send browser push notification
+  sendNotif(title, body, icon);
+}
+
+function updateNotifBadge(){
+  const unread = notifStore.filter(n => !n.read).length;
+  const badge = document.getElementById('notif-count');
+  if(badge){
+    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.style.display = unread > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+async function startNotifications(){
+  // Load initial pending count silently
+  try{
+    const REQS = await getReqs();
+    lastReqCount = REQS.filter(r=>r.status==='pending').length;
+    // Add existing pending requests as notifications
+    const pending = REQS.filter(r=>r.status==='pending');
+    if(pending.length > 0){
+      addNotif(
+        `${pending.length} demande${pending.length>1?'s':''} en attente`,
+        pending.slice(0,3).map(r=>`👷 ${r.name} – ${r.type}`).join(' | '),
+        '📋', 'reqs'
+      );
+    }
+  }catch(e){}
+
+  // Poll every 30 seconds for new requests
+  notifInterval = setInterval(async ()=>{
+    try{
+      const REQS = await getReqs();
+      const pendingNow = REQS.filter(r=>r.status==='pending').length;
+      if(pendingNow > lastReqCount){
+        const diff = pendingNow - lastReqCount;
+        addNotif(
+          `${diff} nouvelle${diff>1?'s':''} demande${diff>1?'s':''}`,
+          `${diff} nouvelle${diff>1?'s':''} demande${diff>1?'s':''} en attente de traitement`,
+          '📋', 'reqs'
+        );
+      }
+      lastReqCount = pendingNow;
+    }catch(e){}
+  }, 30000);
+}
+
+function stopNotifications(){
+  if(notifInterval){ clearInterval(notifInterval); notifInterval=null; }
+}
+
+function sendNotif(title, body, icon='🏗️'){
+  if(Notification.permission !== 'granted') return;
+  try{
+    new Notification(title, {
+      body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: 'garbouj-request',
+      renotify: true
+    });
+  }catch(e){
+    // Fallback: show in-app toast
+    toast(`🔔 ${body}`,'','info');
+  }
+}
+
+function requestNotifPermission(){
+  if(!('Notification' in window)){ toast('Notifications non supportées','⚠️'); return; }
+  Notification.requestPermission().then(perm=>{
+    if(perm==='granted') toast('Notifications activées ✅','🔔','ok');
+    else toast('Notifications refusées','❌','err');
+  });
+}
+
+/* ── BOOT ─────────────────────────────────────────────── */
+async function adminInit(){
+  // 1. Firebase init — avec timeout de sécurité global
+  // Si initFirebase plante ou prend trop de temps, on affiche quand même le login
+  try{
+    await Promise.race([
+      initFirebase(),
+      new Promise(resolve => setTimeout(resolve, 14000)) // max 14s puis on continue
+    ]);
+  }catch(e){
+    console.warn('adminInit: Firebase init failed, continuing anyway:', e.message);
+    USE_FIREBASE = false;
+    showSyncBadge('offline');
+  }
+
+  // 2. Afficher la page login IMMÉDIATEMENT
+  // Ne pas bloquer sur initWorkers/initReqs avant de montrer l'interface
+  if(loadAdminSession()){
+    CAdmin = {name: 'Responsable RH'};
+    try{
+      const pwdChanged = await dbGet('admin/pwd_changed');
+      if(!pwdChanged){
+        showS('achpwd');
+        document.getElementById('achpwd-sub').textContent = 'Première connexion. Définissez un mot de passe confidentiel.';
+        document.getElementById('achpwd-skip').style.display = 'none';
+      } else {
+        showS('adash');
+        buildDash();
+        startNotifications();
+        getReqs().then(r=>{ lastReqCount=r.filter(x=>x.status==='pending').length; });
+      }
+    }catch(e){
+      console.warn('Session restore error, showing login:', e);
+      showS('alogin');
+    }
+  } else {
+    showS('alogin');
+  }
+
+  // 3. Précharger workers et requests EN ARRIÈRE-PLAN (ne bloque pas l'UI)
+  initWorkers().catch(e => console.warn('initWorkers background:', e));
+  initReqs().catch(e => console.warn('initReqs background:', e));
+}
+
+// Launch app
+adminInit();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.update();
+  }).catch(()=>{});
+}
+</script>
+
+<!-- ══ MODAL ÉDITION POINTAGE ══════════════════════════════ -->
+<div id="ptg-edit-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--ink2);border:1.5px solid var(--border);border-radius:16px;padding:22px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:.5px;color:var(--amber);margin-bottom:4px">✏️ Modifier le pointage</div>
+    <div id="ptg-edit-info" style="font-size:12px;color:var(--steel);margin-bottom:16px"></div>
+
+    <div style="display:grid;gap:12px">
+      <!-- Heure -->
+      <div>
+        <label style="font-size:11px;color:var(--steel);text-transform:uppercase;letter-spacing:.6px;font-weight:700;display:block;margin-bottom:5px">Nouvelle heure</label>
+        <input type="time" id="ptg-edit-time" style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--white);font-size:16px;color-scheme:dark;font-family:var(--mono)"/>
+      </div>
+      <!-- Type -->
+      <div>
+        <label style="font-size:11px;color:var(--steel);text-transform:uppercase;letter-spacing:.6px;font-weight:700;display:block;margin-bottom:5px">Type de pointage</label>
+        <select id="ptg-edit-type" style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--white);font-size:13px;-webkit-appearance:none">
+          <option value="morning_entry">دخول صباح — Entrée matin</option>
+          <option value="morning_exit">خروج ظهر — Sortie midi</option>
+          <option value="afternoon_entry">دخول بعد الزوال — Entrée après-midi</option>
+          <option value="afternoon_exit">خروج مساء — Sortie soir</option>
+          <option value="entry">دخول — Entrée</option>
+          <option value="exit">خروج — Sortie</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button onclick="closePtgEdit()" style="flex:1;padding:12px;border-radius:9px;background:var(--ink3);border:1px solid var(--border);color:var(--steel);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif">Annuler</button>
+      <button onclick="deletePtgRecord()" style="padding:12px 14px;border-radius:9px;background:rgba(218,54,51,.12);border:1px solid rgba(218,54,51,.3);color:var(--ruby);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif">🗑️</button>
+      <button onclick="savePtgEdit()" style="flex:2;padding:12px;border-radius:9px;background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+<!-- ══ FIN MODAL ÉDITION POINTAGE ══════════════════════════ -->
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0d1117"/>
+<title>Chef d'Équipe – STE FRÈRES GARBOUJ</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#0d1117;--ink2:#161b22;--ink3:#21262d;--ink4:#30363d;
+  --steel:#8b949e;--white:#f0f6fc;
+  --amber:#e8a020;--rust:#d4622a;--jade:#2ea043;--ruby:#da3633;--sky:#58a6ff;--violet:#bc8cff;
+  --border:rgba(240,246,252,.1);--r:14px;--r-sm:9px;
+  --cond:'Barlow Condensed',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--white);font-family:'Barlow',sans-serif}
+button{border:none;cursor:pointer;font-family:'Barlow',sans-serif}
+input,select,textarea{font-family:'Barlow',sans-serif;outline:none}
+input[type=date],input[type=time]{color-scheme:dark}
+
+/* SCREENS */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* LOGIN */
+#s-login{background:var(--ink);align-items:center;justify-content:center;padding:20px}
+.login-glow{position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(88,166,255,.07),transparent 65%);top:-80px;left:50%;transform:translateX(-50%)}
+.lg-box{position:relative;z-index:1;width:100%;max-width:360px;background:var(--ink2);border:1px solid var(--border);border-top:3px solid var(--sky);border-radius:var(--r);padding:28px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.lg-header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.lg-logo{width:48px;height:48px;background:linear-gradient(145deg,var(--sky),#1a5faf);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;box-shadow:0 4px 14px rgba(88,166,255,.25)}
+.lg-title{font-family:var(--cond);font-size:22px;font-weight:800;letter-spacing:.2px;margin-bottom:4px}
+.lg-sub{font-size:13px;color:var(--steel);margin-bottom:20px}
+.field{margin-bottom:13px}
+.field label{font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;font-family:var(--cond)}
+.fw{position:relative}
+.fw input,.fw select{width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px 44px 12px 14px;color:var(--white);font-size:15px;transition:border-color .2s}
+.fw input:focus,.fw select:focus{border-color:var(--sky)}
+.fw input::placeholder{color:var(--ink4)}
+.fi{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
+.btn-login{width:100%;margin-top:6px;padding:14px;background:linear-gradient(135deg,var(--sky),#1a5faf);color:var(--white);font-size:16px;font-weight:700;font-family:var(--cond);letter-spacing:.5px;border-radius:var(--r-sm);transition:transform .15s;text-transform:uppercase}
+.btn-login:active{transform:scale(.97)}
+.err{display:none;margin-top:10px;padding:9px 13px;background:rgba(218,54,51,.12);border:1px solid rgba(218,54,51,.3);border-radius:8px;color:#ff7b72;font-size:13px;text-align:center}
+.err.on{display:block}
+
+/* TOPBAR */
+.topbar{background:var(--ink2);border-bottom:1px solid var(--border);height:54px;padding:0 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tb-logo{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--sky),#1a5faf);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tb-title{font-family:var(--cond);font-size:15px;font-weight:800;flex:1;letter-spacing:.2px}
+.tb-user{font-size:12px;color:var(--steel);font-family:var(--cond)}
+.sync-badge{padding:4px 9px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--cond);background:var(--ink3);color:var(--steel)}
+.sync-badge.online{background:rgba(46,160,67,.15);color:var(--jade)}
+.sync-badge.offline{background:rgba(218,54,51,.12);color:var(--ruby)}
+.btn-out{padding:6px 11px;border-radius:8px;background:var(--ink3);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--steel);font-family:var(--cond);text-transform:uppercase;letter-spacing:.3px}
+
+/* TABS */
+.tabs{display:flex;background:var(--ink2);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:12px 16px;font-size:12px;font-weight:700;font-family:var(--cond);color:var(--steel);border-bottom:2px solid transparent;white-space:nowrap;background:none;text-transform:uppercase;letter-spacing:.5px;transition:color .2s,border-color .2s}
+.tab.on{color:var(--sky);border-color:var(--sky)}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px}
+.panel.on{display:block}
+.panel::-webkit-scrollbar{display:none}
+
+/* SAISIE PRODUCTION */
+.prod-form{padding:16px}
+.section-title{font-family:var(--cond);font-size:12px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.fg{margin-bottom:14px}
+.fg label{font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px;font-family:var(--cond)}
+.finput{width:100%;background:var(--ink2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;color:var(--white);font-size:14px;transition:border-color .2s}
+.finput:focus{border-color:var(--sky)}
+.finput::placeholder{color:var(--ink4)}
+select.finput{-webkit-appearance:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* LIVE CALC */
+.live-calc{background:linear-gradient(160deg,rgba(88,166,255,.06),rgba(88,166,255,.02));border:1.5px solid rgba(88,166,255,.15);border-radius:var(--r);padding:16px;margin:0 16px 14px;position:relative;overflow:hidden}
+.live-calc::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 0% 0%,rgba(88,166,255,.08),transparent 60%);pointer-events:none}
+.lc-title{font-family:var(--cond);font-size:11px;font-weight:700;color:var(--sky);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.lc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.lc-item{background:var(--ink3);border:1px solid var(--border);border-radius:9px;padding:11px 12px}
+.lc-val{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-1px}
+.lc-lbl{font-size:10px;color:var(--steel);margin-top:3px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.5px}
+.lc-val.excellent{color:#56d364}.lc-val.good{color:var(--jade)}.lc-val.average{color:var(--amber)}.lc-val.poor{color:var(--ruby)}
+
+/* TRS Gauge */
+.trs-gauge{margin:0 16px 14px;background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.gauge-title{font-family:var(--cond);font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.gauge-bar{height:12px;background:var(--ink3);border-radius:6px;overflow:hidden;margin-bottom:6px}
+.gauge-fill{height:100%;border-radius:6px;transition:width .5s cubic-bezier(.4,0,.2,1),background-color .5s}
+.gauge-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--steel);font-family:var(--mono)}
+
+/* Save button */
+.btn-save{width:calc(100% - 32px);margin:0 16px;padding:15px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--sky),#1a5faf);color:var(--white);font-size:15px;font-weight:700;font-family:var(--cond);letter-spacing:.5px;text-transform:uppercase;box-shadow:0 5px 18px rgba(88,166,255,.25);transition:transform .15s}
+.btn-save:active{transform:scale(.97)}
+
+/* HISTORY */
+.hist-wrap{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.hist-card{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.hc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.hc-name{font-family:var(--cond);font-size:15px;font-weight:700;letter-spacing:.2px}
+.hc-date{font-size:11px;color:var(--steel)}
+.hc-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.hm{background:var(--ink3);border-radius:8px;padding:8px 10px;text-align:center}
+.hm-val{font-family:var(--mono);font-size:15px;font-weight:600}
+.hm-lbl{font-size:9px;color:var(--steel);margin-top:2px;font-family:var(--cond);text-transform:uppercase}
+.trs-pill{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:var(--cond)}
+.trs-e{background:rgba(86,211,100,.15);color:#56d364;border:1px solid rgba(86,211,100,.2)}
+.trs-g{background:rgba(46,160,67,.15);color:var(--jade);border:1px solid rgba(46,160,67,.2)}
+.trs-a{background:rgba(232,160,32,.15);color:var(--amber);border:1px solid rgba(232,160,32,.2)}
+.trs-p{background:rgba(218,54,51,.12);color:var(--ruby);border:1px solid rgba(218,54,51,.2)}
+
+/* DASHBOARD */
+.dash-wrap{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.dash-kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:4px}
+.kpi{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.kpi-val{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-1px}
+.kpi-lbl{font-size:10px;color:var(--steel);margin-top:4px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.5px}
+.trend-up{color:var(--jade)}.trend-down{color:var(--ruby)}.trend-flat{color:var(--amber)}
+
+/* Toast */
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--ink2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(46,160,67,.4);color:var(--jade)}
+.toast.err{border-color:rgba(218,54,51,.4);color:var(--ruby)}
+.toast.info{border-color:rgba(88,166,255,.3);color:var(--sky)}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- ══ LOGIN ══ -->
+<div class="screen active" id="s-login">
+  <div class="login-glow"></div>
+  <div class="lg-box">
+    <div class="lg-header">
+      <div class="lg-logo">📊</div>
+      <div>
+        <div style="font-size:11px;color:var(--steel)">STE FRÈRES GARBOUJ</div>
+        <div style="font-family:var(--cond);font-size:16px;font-weight:800;letter-spacing:.2px">Portail Chef d'Équipe</div>
+      </div>
+    </div>
+    <div class="lg-title">Connexion</div>
+    <div class="lg-sub">Accédez à votre tableau de bord production</div>
+    <div class="field">
+      <label>Identifiant</label>
+      <div class="fw"><span class="fi">👤</span><input id="lu" type="text" placeholder="chef.equipe" autocomplete="username" dir="ltr"/></div>
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <div class="fw"><span class="fi">🔒</span><input id="lp" type="password" placeholder="••••••••" autocomplete="current-password" dir="ltr"/></div>
+    </div>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">🏭 Accéder</button>
+    <div class="err" id="lerr">Identifiant ou mot de passe incorrect</div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div class="screen" id="s-app">
+  <div class="topbar">
+    <div class="tb-logo">📊</div>
+    <div class="tb-title">Production – GARBOUJ</div>
+    <div class="tb-user" id="tb-user">—</div>
+    <div class="sync-badge" id="sync-badge">⏳</div>
+    <button class="btn-out" onclick="doLogout()">Quitter</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="goTab('saisie',this)">✏️ Saisie</button>
+    <button class="tab" onclick="goTab('dashboard',this)">📊 Tableau de bord</button>
+    <button class="tab" onclick="goTab('history',this)">📋 Historique</button>
+  </div>
+
+  <!-- SAISIE PRODUCTION -->
+  <div class="panel on" id="p-saisie">
+
+    <div class="prod-form">
+      <div class="section-title">🏭 Saisie de production</div>
+
+      <div class="grid2">
+        <div class="fg">
+          <label>Date</label>
+          <input type="date" class="finput" id="f-date"/>
+        </div>
+        <div class="fg">
+          <label>Équipe / Période</label>
+          <select class="finput" id="f-shift">
+            <option value="matin">🌅 Matin (7h30–12h30)</option>
+            <option value="aprem">☀️ Après-midi (13h15–16h45)</option>
+            <option value="journee">🌞 Journée complète</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="fg">
+          <label>Heure début</label>
+          <input type="time" class="finput" id="f-hstart" value="07:30"/>
+        </div>
+        <div class="fg">
+          <label>Heure fin</label>
+          <input type="time" class="finput" id="f-hend" value="12:30"/>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Opération / Poste</label>
+        <select class="finput" id="f-poste">
+          <option value="">— Toute la ligne —</option>
+          <option value="coupe">✂️ Coupe</option>
+          <option value="piquage">🧵 Piquage</option>
+          <option value="montage">🔧 Montage</option>
+          <option value="finition">✨ Finition</option>
+          <option value="controle">🔍 Contrôle qualité</option>
+          <option value="emballage">📦 Emballage</option>
+          <option value="autre">📌 Autre</option>
+        </select>
+      </div>
+
+      <div class="grid2">
+        <div class="fg">
+          <label>Paires produites</label>
+          <input type="number" class="finput" id="f-pairs" placeholder="ex: 120" min="0" oninput="calcLive()"/>
+        </div>
+        <div class="fg">
+          <label>Nb ouvriers actifs</label>
+          <input type="number" class="finput" id="f-workers" placeholder="ex: 8" min="1" value="1" oninput="calcLive()"/>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Temps alloué / paire (min)</label>
+        <input type="number" class="finput" id="f-std" placeholder="ex: 25" min="1" step="0.5" value="25" oninput="calcLive()"/>
+      </div>
+
+      <div class="fg">
+        <label>Remarques (optionnel)</label>
+        <textarea class="finput" id="f-note" rows="2" placeholder="Pannes, absences, problèmes qualité..."></textarea>
+      </div>
+    </div>
+
+    <!-- Live Calculation -->
+    <div class="live-calc" id="live-calc">
+      <div class="lc-title">📐 Calcul automatique en temps réel</div>
+      <div class="lc-grid">
+        <div class="lc-item">
+          <div class="lc-val" id="lc-minutes">—</div>
+          <div class="lc-lbl">Min produites</div>
+        </div>
+        <div class="lc-item">
+          <div class="lc-val" id="lc-perf">—</div>
+          <div class="lc-lbl">Performance</div>
+        </div>
+        <div class="lc-item">
+          <div class="lc-val" id="lc-trs">—</div>
+          <div class="lc-lbl">TRS</div>
+        </div>
+        <div class="lc-item">
+          <div class="lc-val" id="lc-pph">—</div>
+          <div class="lc-lbl">Paires/h/ouv</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRS Gauge -->
+    <div class="trs-gauge">
+      <div class="gauge-title">📈 Niveau TRS</div>
+      <div class="gauge-bar">
+        <div class="gauge-fill" id="gauge-fill" style="width:0%"></div>
+      </div>
+      <div class="gauge-labels">
+        <span>0%</span>
+        <span id="gauge-label" style="color:var(--steel)">—</span>
+        <span>100%</span>
+      </div>
+    </div>
+
+    <button class="btn-save" onclick="saveRecord()">💾 Enregistrer la production</button>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel" id="p-dashboard">
+    <div class="dash-wrap">
+      <div style="font-family:var(--cond);font-size:12px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.8px" id="dash-period">Cette semaine</div>
+      <div class="dash-kpi">
+        <div class="kpi"><div class="kpi-val trend-up" id="dash-trs">—</div><div class="kpi-lbl">TRS Moyen</div></div>
+        <div class="kpi"><div class="kpi-val" id="dash-pairs" style="color:var(--sky)">—</div><div class="kpi-lbl">Total Paires</div></div>
+        <div class="kpi"><div class="kpi-val" id="dash-perf" style="color:var(--amber)">—</div><div class="kpi-lbl">Performance</div></div>
+        <div class="kpi"><div class="kpi-val" id="dash-sessions">—</div><div class="kpi-lbl">Sessions</div></div>
+      </div>
+      <div id="dash-chart" style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:14px">
+        <div style="font-family:var(--cond);font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;margin-bottom:12px">TRS par session</div>
+        <div id="chart-bars" style="display:flex;align-items:flex-end;gap:4px;height:80px"></div>
+        <div id="chart-labels" style="display:flex;gap:4px;margin-top:6px"></div>
+      </div>
+      <div id="dash-by-poste" style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:14px">
+        <div style="font-family:var(--cond);font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;margin-bottom:10px">Performance par poste</div>
+        <div id="poste-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="p-history">
+    <div style="padding:12px 16px;display:flex;gap:8px">
+      <input type="date" id="hist-date" class="finput" style="flex:1"/>
+      <button onclick="loadHistory()" style="padding:10px 14px;border-radius:9px;background:var(--sky);color:var(--ink);font-size:12px;font-weight:700;font-family:var(--cond);text-transform:uppercase">Voir</button>
+    </div>
+    <div class="hist-wrap" id="hist-wrap">
+      <div style="text-align:center;padding:30px;color:var(--steel)">Sélectionnez une date</div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase pre-loaded -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+/* ══════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════ */
+const FB_CONFIG = {
+  apiKey:            "AIzaSyDEhDsv--XRg9MPSt3bQQ--paWxyUhLXWM",
+  authDomain:        "garbouj-app.firebaseapp.com",
+  databaseURL:       "https://garbouj-app-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "garbouj-app",
+  appId:             "1:1053408365509:web:2c1629fdd59ec858f619ac"
+};
+
+// Chef d'équipe accounts (stored in Firebase under chef_accounts/)
+const DEFAULT_CHEFS = {
+  'chef.equipe1': {pass:'chef2026', name:'Chef Équipe 1', poste:'Ligne A'},
+  'chef.equipe2': {pass:'chef2026', name:'Chef Équipe 2', poste:'Ligne B'},
+  'chef.prod':    {pass:'prod2026', name:'Responsable Production', poste:'Toutes lignes'},
+};
+
+let DB = null, USE_FIREBASE = false, CChef = null;
+
+/* ══ FIREBASE ══ */
+function initFirebase(){
+  return new Promise(resolve => {
+    try{
+      if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+      DB = firebase.database();
+      let done=false;
+      const to=setTimeout(()=>{if(!done){done=true;setSyncBadge(false);resolve();}},6000);
+      DB.ref('.info/connected').on('value',snap=>{
+        if(!done){done=true;clearTimeout(to);USE_FIREBASE=snap.val()===true;setSyncBadge(USE_FIREBASE);resolve();}
+        else{USE_FIREBASE=snap.val()===true;setSyncBadge(USE_FIREBASE);}
+      });
+    }catch(e){setSyncBadge(false);resolve();}
+  });
+}
+
+function setSyncBadge(online){
+  const b=document.getElementById('sync-badge');
+  if(!b)return;
+  if(online){b.textContent='🌐 En ligne';b.className='sync-badge online';}
+  else{b.textContent='⚠️ Hors ligne';b.className='sync-badge offline';}
+}
+
+/* ══ AUTH ══ */
+async function doLogin(){
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value;
+  const errEl=document.getElementById('lerr');
+  const btn=document.getElementById('btn-login');
+  errEl.classList.remove('on');
+  btn.textContent='...';btn.disabled=true;
+
+  // Chef must be online
+  if(!USE_FIREBASE){
+    errEl.textContent='Connexion internet requise pour le portail chef d\'équipe.';
+    errEl.classList.add('on');btn.textContent='🏭 Accéder';btn.disabled=false;return;
+  }
+
+  try{
+    // Check Firebase chef_accounts first
+    let chef=null;
+    const snap=await DB.ref(`chef_accounts/${u.replace(/\./g,'_')}`).get();
+    if(snap.exists()) chef=snap.val();
+    else chef=DEFAULT_CHEFS[u];
+
+    if(!chef||chef.pass!==p){
+      errEl.classList.add('on');btn.textContent='🏭 Accéder';btn.disabled=false;return;
+    }
+
+    CChef={...chef,username:u};
+    document.getElementById('tb-user').textContent=chef.name||u;
+    showScreen('s-app');
+    initDate();
+    loadDashboard();
+  }catch(e){
+    errEl.textContent='Erreur de connexion: '+e.message;
+    errEl.classList.add('on');
+  }
+  btn.textContent='🏭 Accéder';btn.disabled=false;
+}
+
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function doLogout(){CChef=null;showScreen('s-login');document.getElementById('lu').value='';document.getElementById('lp').value='';}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+/* ══ TABS ══ */
+function goTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  if(btn)btn.classList.add('on');
+  if(id==='dashboard')loadDashboard();
+  if(id==='history')initHistory();
+}
+
+/* ══ FORM INIT ══ */
+function initDate(){
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+}
+
+/* ══ LIVE CALCULATION ══ */
+function calcLive(){
+  const pairs = parseFloat(document.getElementById('f-pairs').value)||0;
+  const workers = parseFloat(document.getElementById('f-workers').value)||1;
+  const std = parseFloat(document.getElementById('f-std').value)||25; // min/pair standard
+  const hs = document.getElementById('f-hstart').value||'07:30';
+  const he = document.getElementById('f-hend').value||'12:30';
+
+  // Duration in minutes
+  const [sh,sm]=hs.split(':').map(Number);
+  const [eh,em]=he.split(':').map(Number);
+  const durationMin = (eh*60+em)-(sh*60+sm);
+  const availableMin = durationMin * workers; // total available worker-minutes
+
+  if(durationMin<=0||pairs<=0){
+    ['lc-minutes','lc-perf','lc-trs','lc-pph'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.textContent='—';el.className='lc-val';}
+    });
+    document.getElementById('gauge-fill').style.width='0%';
+    document.getElementById('gauge-label').textContent='—';
+    return;
+  }
+
+  // Calculations
+  const minutesProduced = pairs * std;                      // actual production in standard minutes
+  const performance = (minutesProduced / availableMin) * 100; // performance %
+  const trs = Math.min(performance, 100);                    // TRS capped at 100
+  const pph = (pairs / durationMin * 60) / workers;          // pairs per hour per worker
+
+  setLcVal('lc-minutes', minutesProduced.toFixed(0)+' min', trs);
+  setLcVal('lc-perf', performance.toFixed(1)+'%', performance);
+  setLcVal('lc-trs', trs.toFixed(1)+'%', trs);
+  setLcVal('lc-pph', pph.toFixed(2), trs);
+
+  // Gauge
+  const fill=document.getElementById('gauge-fill');
+  const fillPct=Math.min(trs,100);
+  const color=trs>=85?'#56d364':trs>=70?'#2ea043':trs>=55?'#e8a020':'#da3633';
+  fill.style.width=fillPct+'%';
+  fill.style.background=color;
+
+  const lbl=trs>=85?'🟢 Excellent (≥85%)':trs>=70?'✅ Bon (≥70%)':trs>=55?'⚠️ Moyen (≥55%)':'❌ Faible (<55%)';
+  document.getElementById('gauge-label').textContent=lbl;
+  document.getElementById('gauge-label').style.color=color;
+}
+
+function setLcVal(id,val,trs){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=val;
+  el.className='lc-val '+(trs>=85?'excellent':trs>=70?'good':trs>=55?'average':'poor');
+}
+
+function trsClass(trs){return trs>=85?'trs-e':trs>=70?'trs-g':trs>=55?'trs-a':'trs-p';}
+function trsLabel(trs){return trs>=85?'Excellent':trs>=70?'Bon':trs>=55?'Moyen':'Faible';}
+
+/* ══ SAVE RECORD ══ */
+async function saveRecord(){
+  if(!USE_FIREBASE){toast('Connexion internet requise','❌','err');return;}
+  const pairs=parseFloat(document.getElementById('f-pairs').value);
+  const workers=parseFloat(document.getElementById('f-workers').value)||1;
+  const std=parseFloat(document.getElementById('f-std').value)||25;
+  const date=document.getElementById('f-date').value;
+  const shift=document.getElementById('f-shift').value;
+  const poste=document.getElementById('f-poste').value;
+  const hs=document.getElementById('f-hstart').value;
+  const he=document.getElementById('f-hend').value;
+  const note=document.getElementById('f-note').value.trim();
+
+  if(!pairs||pairs<=0){toast('Entrez le nombre de paires','⚠️');return;}
+  if(!date){toast('Sélectionnez une date','⚠️');return;}
+
+  const [sh,sm]=hs.split(':').map(Number);
+  const [eh,em]=he.split(':').map(Number);
+  const durationMin=(eh*60+em)-(sh*60+sm);
+  const availableMin=durationMin*workers;
+  const minutesProduced=pairs*std;
+  const performance=+(minutesProduced/availableMin*100).toFixed(2);
+  const trs=+Math.min(performance,100).toFixed(2);
+  const pph=+(pairs/durationMin*60/workers).toFixed(2);
+
+  const record={
+    chef:CChef.username, chefName:CChef.name,
+    date, shift, poste:poste||'ligne',
+    timeStart:hs, timeEnd:he, durationMin,
+    workers, pairs, std, availableMin, minutesProduced,
+    performance, trs, pph, note,
+    timestamp:Date.now(),
+    saved:new Date().toLocaleString('fr-TN')
+  };
+
+  try{
+    const dateKey=date.replace(/-/g,'');
+    const key=`${CChef.username.replace(/\./g,'_')}_${Date.now()}`;
+    await DB.ref(`production/${dateKey}/${key}`).set(record);
+    toast(`✅ Production enregistrée – TRS ${trs}%`,'','ok');
+    // Reset pairs field only
+    document.getElementById('f-pairs').value='';
+    document.getElementById('f-note').value='';
+    calcLive();
+    loadDashboard();
+  }catch(e){
+    toast('Erreur: '+e.message,'❌','err');
+    console.error('save error:',e);
+  }
+}
+
+/* ══ DASHBOARD ══ */
+async function loadDashboard(){
+  if(!USE_FIREBASE){document.getElementById('dash-chart').innerHTML='<div style="text-align:center;padding:20px;color:var(--steel)">Connexion requise</div>';return;}
+
+  try{
+    // Load last 7 days
+    const records=[];
+    const today=new Date();
+    for(let i=6;i>=0;i--){
+      const d=new Date(today); d.setDate(today.getDate()-i);
+      const dk=d.toISOString().split('T')[0].replace(/-/g,'');
+      const snap=await DB.ref(`production/${dk}`).get();
+      if(snap.exists()) Object.values(snap.val()).filter(Boolean).forEach(r=>records.push(r));
+    }
+
+    if(!records.length){
+      document.getElementById('dash-trs').textContent='—';
+      document.getElementById('dash-pairs').textContent='—';
+      document.getElementById('dash-perf').textContent='—';
+      document.getElementById('dash-sessions').textContent='0';
+      document.getElementById('chart-bars').innerHTML='<div style="color:var(--steel);font-size:12px;padding:10px">Aucune production cette semaine</div>';
+      return;
+    }
+
+    const avgTRS=(records.reduce((s,r)=>s+(r.trs||0),0)/records.length).toFixed(1);
+    const totalPairs=records.reduce((s,r)=>s+(r.pairs||0),0);
+    const avgPerf=(records.reduce((s,r)=>s+(r.performance||0),0)/records.length).toFixed(1);
+
+    document.getElementById('dash-trs').textContent=avgTRS+'%';
+    document.getElementById('dash-trs').className='kpi-val '+(avgTRS>=85?'trend-up':avgTRS>=70?'trend-flat':'trend-down');
+    document.getElementById('dash-pairs').textContent=totalPairs.toLocaleString('fr-FR');
+    document.getElementById('dash-perf').textContent=avgPerf+'%';
+    document.getElementById('dash-sessions').textContent=records.length;
+
+    // Chart
+    renderChart(records);
+    renderPosteStats(records);
+  }catch(e){console.error('dashboard:',e);}
+}
+
+function renderChart(records){
+  const recent=records.slice(-10);
+  const maxTRS=Math.max(...recent.map(r=>r.trs||0),100);
+  const barsEl=document.getElementById('chart-bars');
+  const labelsEl=document.getElementById('chart-labels');
+  if(!barsEl||!labelsEl)return;
+  barsEl.innerHTML=recent.map(r=>{
+    const h=Math.max(4,(r.trs||0)/maxTRS*76);
+    const color=r.trs>=85?'#56d364':r.trs>=70?'#2ea043':r.trs>=55?'#e8a020':'#da3633';
+    return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="font-size:8px;color:var(--steel);font-family:var(--mono)">${r.trs?.toFixed(0)||'—'}%</div>
+      <div style="width:100%;height:${h}px;background:${color};border-radius:4px 4px 2px 2px;opacity:.85"></div>
+    </div>`;
+  }).join('');
+  labelsEl.innerHTML=recent.map(r=>`<div style="flex:1;text-align:center;font-size:8px;color:var(--steel);font-family:var(--cond)">${(r.date||'').slice(5)||r.saved?.slice(0,5)||'—'}</div>`).join('');
+}
+
+function renderPosteStats(records){
+  const el=document.getElementById('poste-list');if(!el)return;
+  const byPoste={};
+  records.forEach(r=>{
+    const p=r.poste||'ligne';
+    if(!byPoste[p])byPoste[p]={total:0,trsSum:0,count:0};
+    byPoste[p].total+=r.pairs||0;
+    byPoste[p].trsSum+=r.trs||0;
+    byPoste[p].count++;
+  });
+  const sorted=Object.entries(byPoste).sort((a,b)=>b[1].trsSum/b[1].count-a[1].trsSum/a[1].count);
+  el.innerHTML=sorted.map(([p,d])=>{
+    const avgTRS=(d.trsSum/d.count).toFixed(1);
+    const color=avgTRS>=85?'#56d364':avgTRS>=70?'#2ea043':avgTRS>=55?'#e8a020':'#da3633';
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:600;flex:1;font-family:var(--cond);text-transform:capitalize">${p}</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--steel)">${d.total} paires</div>
+      <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:${color}">${avgTRS}%</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══ HISTORY ══ */
+function initHistory(){
+  const d=document.getElementById('hist-date');
+  if(d&&!d.value){d.value=new Date().toISOString().split('T')[0];loadHistory();}
+}
+
+async function loadHistory(){
+  const dateEl=document.getElementById('hist-date');
+  if(!dateEl||!dateEl.value)return;
+  const dk=dateEl.value.replace(/-/g,'');
+  const el=document.getElementById('hist-wrap');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--steel)">⏳ Chargement...</div>';
+
+  if(!USE_FIREBASE){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--steel)">Connexion requise</div>';return;}
+
+  try{
+    const snap=await DB.ref(`production/${dk}`).get();
+    if(!snap.exists()){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--steel)">Aucune production ce jour</div>';return;}
+    const records=Object.values(snap.val()).filter(Boolean).sort((a,b)=>a.timestamp-b.timestamp);
+    el.innerHTML=records.map(r=>`
+      <div class="hist-card">
+        <div class="hc-top">
+          <div><div class="hc-name">${r.chefName||r.chef} – ${r.poste||'Ligne'}</div><div class="hc-date">${r.timeStart}–${r.timeEnd} · ${r.workers} ouvrier(s)</div></div>
+          <div class="${trsClass(r.trs)} trs-pill">${trsLabel(r.trs)}</div>
+        </div>
+        ${r.note?`<div style="font-size:12px;color:var(--steel);margin-top:6px;padding:8px 10px;background:var(--ink3);border-radius:7px">📝 ${r.note}</div>`:''}
+        <div class="hc-metrics">
+          <div class="hm"><div class="hm-val" style="color:var(--sky)">${r.pairs}</div><div class="hm-lbl">Paires</div></div>
+          <div class="hm"><div class="hm-val" style="color:var(--amber)">${r.performance?.toFixed(1)}%</div><div class="hm-lbl">Perf.</div></div>
+          <div class="hm"><div class="hm-val" style="color:${r.trs>=85?'#56d364':r.trs>=70?'var(--jade)':r.trs>=55?'var(--amber)':'var(--ruby)'}">${r.trs?.toFixed(1)}%</div><div class="hm-lbl">TRS</div></div>
+          <div class="hm"><div class="hm-val" style="color:var(--jade)">${r.minutesProduced?.toFixed(0)}</div><div class="hm-lbl">Min prod.</div></div>
+          <div class="hm"><div class="hm-val" style="color:var(--violet)">${r.pph?.toFixed(2)}</div><div class="hm-lbl">P/h/ouv</div></div>
+          <div class="hm"><div class="hm-val" style="color:var(--steel)">${r.durationMin}</div><div class="hm-lbl">Min durée</div></div>
+        </div>
+      </div>`).join('');
+  }catch(e){el.innerHTML=`<div style="color:var(--ruby);text-align:center;padding:20px">Erreur: ${e.message}</div>`;}
+}
+
+/* ══ TOAST ══ */
+let tTimer;
+function toast(msg,ico='',type=''){
+  const t=document.getElementById('toast');
+  t.textContent=(ico?ico+' ':'')+msg;
+  t.className='toast on '+(type||'');
+  clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('on'),3000);
+}
+
+/* ══ BOOT ══ */
+async function boot(){
+  await initFirebase();
+}
+boot();
+</script>
+</body>
+</html>
