@@ -387,45 +387,10 @@ input,textarea,select{font-family:var(--font);outline:none}
       <div id="aMsgList"></div>
     </div>
 
-  <!-- CONVERSATION PANEL (slide-in) -->
-  <div id="conv-panel" style="display:none;position:fixed;top:0;right:0;width:100%;max-width:480px;height:100vh;background:var(--ink);border-left:1px solid var(--border);z-index:9999;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)">
-    <!-- Header -->
-    <div style="background:var(--ink2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
-      <button onclick="closeConv()" style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--steel);font-size:13px;cursor:pointer">← Retour</button>
-      <div style="flex:1;min-width:0">
-        <div id="conv-name" style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white)">—</div>
-        <div id="conv-sub" style="font-size:10px;color:var(--steel);margin-top:1px">Historique de la conversation</div>
-      </div>
-      <div id="conv-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--ink);flex-shrink:0">?</div>
-    </div>
-    <!-- Messages thread -->
-    <div id="conv-thread" style="flex:1;overflow-y:auto;padding:14px 14px 0;display:flex;flex-direction:column;gap:10px"></div>
-    <!-- Reply box -->
-    <div style="padding:12px;border-top:1px solid var(--border);background:var(--ink2);flex-shrink:0">
-      <textarea id="conv-reply-ta" rows="2" placeholder="Votre réponse…"
-        style="width:100%;box-sizing:border-box;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--white);font-size:13px;resize:none;font-family:var(--font)"
-        onkeydown="if(event.key==='Enter'&&event.ctrlKey) sendConvReply()"></textarea>
-      <button onclick="sendConvReply()" id="conv-send-btn"
-        style="width:100%;margin-top:8px;padding:11px;border-radius:9px;background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif">
-        📤 Envoyer — Ctrl+Entrée
-      </button>
-    </div>
-  </div>
-  <!-- Backdrop -->
-  <div id="conv-backdrop" onclick="closeConv()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998"></div>
-
   </div>
 </div>
 
 <style>
-.conv-bubble{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.55;word-break:break-word}
-.conv-bubble.emp{background:var(--ink3);border:1px solid var(--border);color:var(--white);align-self:flex-start;border-bottom-left-radius:4px}
-.conv-bubble.admin{background:linear-gradient(135deg,rgba(232,160,32,.18),rgba(197,77,26,.12));border:1px solid rgba(232,160,32,.25);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px}
-.conv-bubble .bub-time{font-size:9px;color:var(--steel);margin-top:4px;text-align:right}
-.conv-bubble.emp .bub-time{text-align:left}
-.conv-bubble .bub-sender{font-size:9px;font-weight:700;color:var(--amber);margin-bottom:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px}
-.amsg-card{cursor:pointer;transition:border-color .15s,background .15s}
-.amsg-card:hover{border-color:rgba(232,160,32,.4)!important;background:rgba(232,160,32,.06)!important}
 .btn-filter{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;background:var(--ink3);color:var(--steel);border:1px solid var(--border);transition:all .2s;font-family:var(--cond);letter-spacing:.5px}
 .btn-filter.on{background:var(--amber);color:var(--ink);border-color:var(--amber)}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
@@ -713,13 +678,7 @@ async function saveAdminPwd(pwd){
 }
 
 /* ── WORKERS ─────────────────────────────────────────── */
-const WORKERS_DEFAULT = [
-  {username:'benali.ahmed',nom:'Benali',prenom:'Ahmed',name:'Ahmed Benali',id:'GRB-001',taux:12.5,cin:'10234567',cnss:'987001',tel:'55100001',telDisplay:'+216 55 100 001',debut:'01/03/2022',poste:'Ouvrier',avance:200,pass:'55100001'},
-  {username:'khelif.mohamed',nom:'Khelif',prenom:'Mohamed',name:'Mohamed Khelif',id:'GRB-002',taux:13,cin:'20234567',cnss:'987002',tel:'55100002',telDisplay:'+216 55 100 002',debut:'15/06/2021',poste:'Ouvrier',avance:0,pass:'55100002'},
-  {username:'ziani.karim',nom:'Ziani',prenom:'Karim',name:'Karim Ziani',id:'GRB-003',taux:11.5,cin:'30234567',cnss:'987003',tel:'55100003',telDisplay:'+216 55 100 003',debut:'10/01/2023',poste:'Ouvrier',avance:150,pass:'55100003'},
-  {username:'hamidi.youcef',nom:'Hamidi',prenom:'Youcef',name:'Youcef Hamidi',id:'GRB-004',taux:12,cin:'40234567',cnss:'987004',tel:'55100004',telDisplay:'+216 55 100 004',debut:'05/09/2020',poste:'Ouvrier',avance:0,pass:'55100004'},
-  {username:'bouzidi.rachid',nom:'Bouzidi',prenom:'Rachid',name:'Rachid Bouzidi',id:'GRB-005',taux:11,cin:'50234567',cnss:'987005',tel:'55100005',telDisplay:'+216 55 100 005',debut:'12/02/2021',poste:'Ouvrier',avance:100,pass:'55100005'},
-];
+const WORKERS_DEFAULT = [];
 
 let WORKERS_CACHE = null;
 
@@ -804,23 +763,18 @@ async function resetWorkerPwd(username){
 }
 
 /* ── REQUESTS ────────────────────────────────────────── */
-const REQS_DEFAULT = [
-  {id:1,user:'benali.ahmed',name:'Ahmed Benali',type:'Demande de congé',type_ar:'طلب إجازة',status:'pending',detail:'Du 20/04 au 25/04/2026 – 6 jours',date:'10/04/2026',note:'Congé annuel'},
-  {id:2,user:'benali.ahmed',name:'Ahmed Benali',type:'Avance sur salaire',type_ar:'سلفة على الراتب',status:'approved',detail:'Montant : 200 DT',date:'01/04/2026',note:''},
-  {id:3,user:'khelif.mohamed',name:'Mohamed Khelif',type:'Congé maladie',type_ar:'إجازة مرضية',status:'approved',detail:'Du 02/04 au 04/04',date:'02/04/2026',note:''},
-  {id:4,user:'ziani.karim',name:'Karim Ziani',type:'Avance sur salaire',type_ar:'سلفة على الراتب',status:'pending',detail:'Montant : 300 DT',date:'09/04/2026',note:''},
-];
+const REQS_DEFAULT = [];
 
 async function getReqs(){
   try{
     const data = await dbGet('requests');
-    if(!data) return [...REQS_DEFAULT];
+    if(!data) return [];
     const list = Array.isArray(data) ? data : Object.values(data);
     const filtered = list.filter(r => r && r.id);
-    return filtered.length > 0 ? filtered : [...REQS_DEFAULT];
+    return filtered;
   }catch(e){
     console.error('getReqs error:',e);
-    return [...REQS_DEFAULT];
+    return [];
   }
 }
 
@@ -934,12 +888,16 @@ const DAYS_AR   = ['أحد','إثن','ثلا','أرب','خمي','سبت','أحد
 
 function genDefaultHours(year, month){
   const daysInMonth = new Date(year, month, 0).getDate();
+  const today = new Date();
+  const ty = today.getFullYear(), tm = today.getMonth()+1, td = today.getDate();
   const o = {};
   for(let i = 1; i <= daysInMonth; i++){
+    const future = (year > ty) || (year===ty && month > tm) || (year===ty && month===tm && i > td);
+    if(future){ o[i] = 0; continue; }
     const wd = new Date(year, month-1, i).getDay();
-    if(wd === 0)      o[i] = 0;                                    // Sunday: 0 default
-    else if(wd === 6) o[i] = +(4 + Math.random()*1.5).toFixed(1); // Saturday
-    else              o[i] = +(7.5 + Math.random()*1).toFixed(1); // Mon–Fri
+    if(wd === 0)      o[i] = 0;
+    else if(wd === 6) o[i] = +(4 + Math.random()*1.5).toFixed(1);
+    else              o[i] = +(7.5 + Math.random()*1).toFixed(1);
   }
   return o;
 }
@@ -1087,13 +1045,14 @@ async function buildDash(){
     ? pendReqs.map(r => arCard(r)).join('')
     : '<div class="empty"><div class="empty-ico">✅</div><p>Aucune demande en attente</p></div>';
   document.getElementById('aActivity').innerHTML = REQS.slice(0,5).map(r => `
-    <div onclick="aTab('reqs',document.querySelector('[onclick*=reqs]'))" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .15s;border-radius:6px;padding-left:6px;padding-right:6px" onmouseover="this.style.background='var(--ink3)'" onmouseout="this.style.background=''">
-      <span style="font-size:15px">${r.status==='approved'?'✅':r.status==='rejected'?'❌':'⏳'}</span>
-      <div style="flex:1;min-width:0">
+    <div id="act-row-${r.id}" style="display:flex;align-items:center;gap:8px;padding:10px 6px;border-bottom:1px solid var(--border2);">
+      <span style="font-size:15px;cursor:pointer" onclick="aTab('reqs',document.querySelector('[onclick*=reqs]'))">${r.status==='approved'?'✅':r.status==='rejected'?'❌':'⏳'}</span>
+      <div style="flex:1;min-width:0;cursor:pointer" onclick="aTab('reqs',document.querySelector('[onclick*=reqs]'))">
         <div style="font-size:13px;font-weight:500">${r.name} – ${r.type}</div>
         <div style="font-size:11px;color:var(--steel);margin-top:2px">${r.date}</div>
       </div>
-      <span class="badge ${r.status==='approved'?'ok':r.status==='rejected'?'no':'wait'}">${r.status==='approved'?'OK':r.status==='rejected'?'Refusé':'Attente'} ›</span>
+      <span class="badge ${r.status==='approved'?'ok':r.status==='rejected'?'no':'wait'}" style="cursor:pointer" onclick="aTab('reqs',document.querySelector('[onclick*=reqs]'))">${r.status==='approved'?'OK':r.status==='rejected'?'Refusé':'Attente'} ›</span>
+      <button onclick="aDeleteReq(${r.id})" title="Supprimer" style="background:rgba(218,54,51,.12);border:1px solid rgba(218,54,51,.3);color:var(--ruby);border-radius:7px;padding:5px 9px;font-size:13px;cursor:pointer;flex-shrink:0">🗑️</button>
     </div>`).join('');
 }
 
@@ -1104,7 +1063,10 @@ function arCard(r){
     <div class="ar-top"><span class="ar-emp">👷 ${r.name}</span><span class="ar-type">${r.type}</span></div>
     <div class="ar-detail">${r.detail}${r.note?'<br><em>'+r.note+'</em>':''}<br><small style="color:var(--ink4)">📅 ${r.date}</small></div>
     ${done
-      ? `<div class="ar-done">${r.status==='approved'?'✅ Approuvée':'❌ Refusée'}</div>`
+      ? `<div class="ar-done" style="display:flex;align-items:center;justify-content:space-between">
+           <span>${r.status==='approved'?'✅ Approuvée':'❌ Refusée'}</span>
+           <button onclick="aDeleteReq(${r.id})" style="background:rgba(218,54,51,.12);border:1px solid rgba(218,54,51,.3);color:var(--ruby);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer">🗑️ Supprimer</button>
+         </div>`
       : `<div class="ar-actions">
            <button class="btn-ok" onclick="aAct(${r.id},'approved')">✅ Approuver</button>
            <button class="btn-no" onclick="aAct(${r.id},'rejected')">❌ Refuser</button>
@@ -1132,6 +1094,23 @@ async function aAct(id, status){
     `${r.name} – ${r.type}`,
     status==='approved'?'✅':'❌', 'reqs'
   );
+}
+
+async function aDeleteReq(id){
+  if(!confirm('Supprimer cette demande définitivement ?')) return;
+  try{ await dbSet('requests/req_'+id, null); }catch(e){}
+  const list = await getReqs();
+  const updated = list.filter(r => r.id !== id);
+  await saveReqs(updated);
+  // Retirer de l'UI immédiatement
+  const card = document.getElementById('arc-'+id);
+  if(card) card.remove();
+  const row = document.getElementById('act-row-'+id);
+  if(row) row.remove();
+  await buildDash();
+  const f = document.querySelector('.btn-filter.on');
+  if(f) buildAReqs(f.dataset.f || 'all');
+  toast('Demande supprimée','🗑️','err');
 }
 
 function aFilterReq(f, btn){
@@ -1394,16 +1373,16 @@ async function buildAWorkers(){
     const effPass = pwdsData[key] || w.pass || w.tel;
     const changed = !!(pwdChangedData[key]);
     const pwdTxt = changed ? `✅ Modifié (${effPass})` : `🔑 ${effPass}`;
-    const h = genDefaultHours(curHoursYear, curHoursMonth); // use default initially
-    const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
-    const netFinal = s.netAuto;
+    // Afficher 0h initialement — les vraies heures Firebase chargées en arrière-plan
+    const s = {totalH:0, normalH:0, suppH:0, workedDays:0, netAuto:0};
+    const netFinal = 0;
     const ovr = null;
 
     return `<div>
       <div class="wk-row">
         <div class="wk-av">${(w.prenom||'?')[0]}${(w.nom||'')[0]||''}</div>
         <div class="wk-info"><div class="wk-name">${w.name}</div><div class="wk-sub">${w.id} · ${w.taux} DT/h</div></div>
-        <div class="wk-hrs">${s.totalH}h</div>
+        <div class="wk-hrs wk-hrs-live">${s.totalH}h</div>
         <button class="wk-expand-btn" onclick="toggleW(${i})">▼</button>
       </div>
       <div class="wk-detail" id="wd-${i}">
@@ -1617,154 +1596,45 @@ async function buildAMsgs(){
 
   let MSGS=[];
   try{ MSGS = await getMsgs(); }catch(e){ console.warn('getMsgs failed',e); }
-  // Group messages by employee username
-  const byUser = {};
-  MSGS.forEach(m => {
-    const u = m.user || m.from;
-    if(!byUser[u]) byUser[u] = [];
-    byUser[u].push(m);
-  });
-  const threads = Object.entries(byUser);
-
-  document.getElementById('aMsgList').innerHTML = !threads.length
+  document.getElementById('aMsgList').innerHTML = !MSGS.length
     ? '<div style="text-align:center;padding:24px;color:var(--steel)">Aucun message reçu</div>'
-    : threads.map(([user, msgs]) => {
-        const last = msgs[0];
-        const unread = msgs.some(m => m.unread);
-        const initials = last.from.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
-        return `<div class="amsg-card ${unread?'unread':''}" onclick="openConv('${user}','${last.from.replace(/'/g,"\'")}')">
-          <div class="amsg-top">
-            <span class="amsg-from">👷 ${last.from} ${unread?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle"></span>':''}</span>
-            <span style="display:flex;align-items:center;gap:8px">
-              <span class="amsg-time">${last.time}</span>
-              <span style="font-size:10px;background:var(--ink3);border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--steel)">${msgs.length} msg${msgs.length>1?'s':''} 💬</span>
-            </span>
-          </div>
-          <div class="amsg-body" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${last.body}</div>
-          ${last.reply?`<div style="font-size:11px;color:var(--amber);margin-top:4px">↩ Répondu: ${last.reply.substring(0,60)}${last.reply.length>60?'…':''}</div>`:''}
-        </div>`;
-      }).join('');
+    : MSGS.map(m => `
+    <div class="amsg-card ${m.unread?'unread':''}">
+      <div class="amsg-top"><span class="amsg-from">👷 ${m.from}</span><span class="amsg-time">${m.time}</span></div>
+      <div class="amsg-body">${m.body}</div>
+      <button class="btn-reply" onclick="toggleReply(${m.id})">💬 Répondre</button>
+      <div class="amsg-reply-box" id="reply-${m.id}">
+        <textarea placeholder="Votre réponse…"></textarea>
+        <button class="btn-send-reply" onclick="sendReply(${m.id})">📤 Envoyer</button>
+      </div>
+    </div>`).join('');
 }
-// ── CONVERSATION PANEL ──────────────────────────────────
-let _convUser = null, _convName = null;
-
-async function openConv(username, displayName){
-  _convUser = username; _convName = displayName;
-  // Header
-  document.getElementById('conv-name').textContent = displayName;
-  document.getElementById('conv-sub').textContent = username;
-  const initials = displayName.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
-  document.getElementById('conv-avatar').textContent = initials;
-  document.getElementById('conv-thread').innerHTML = '<div style="text-align:center;padding:20px;color:var(--steel);font-size:12px">Chargement…</div>';
-  // Show panel
-  const panel = document.getElementById('conv-panel');
-  const backdrop = document.getElementById('conv-backdrop');
-  panel.style.display = 'flex';
-  backdrop.style.display = 'block';
-  setTimeout(()=>{ panel.style.transform='translateX(0)'; },10);
-  document.getElementById('conv-reply-ta').value = '';
-  await renderConvThread(username);
-  // Mark as read
-  try{
-    const MSGS = await getMsgs();
-    let changed = false;
-    MSGS.forEach(m=>{ if((m.user===username||m.from.includes(displayName.split(' ')[0]))&&m.unread){ m.unread=false; changed=true; }});
-    if(changed){ await saveMsgs(MSGS); buildDash(); buildAMsgs(); }
-  }catch(e){}
-}
-
-async function renderConvThread(username){
-  const thread = document.getElementById('conv-thread');
-  try{
-    // Get messages FROM employee (stored in 'messages')
-    const allMsgs = await getMsgs();
-    const empMsgs = allMsgs.filter(m => m.user === username || m.from === _convName);
-    // Get messages TO employee (admin replies stored in emp_messages)
-    const adminMsgs = await getEmpMsgs(username);
-    // Merge all into timeline
-    const timeline = [];
-    empMsgs.forEach(m => timeline.push({
-      dir:'emp', body:m.body, time:m.time, sender:_convName,
-      reply:m.reply||null, replyTime:m.replyTime||null, ts:m.id||0
-    }));
-    adminMsgs.forEach(m => timeline.push({
-      dir:'admin', body:m.body, time:m.time, sender:'الإدارة', ts:m.id||0
-    }));
-    // Sort by timestamp ascending
-    timeline.sort((a,b) => a.ts - b.ts);
-    if(!timeline.length){
-      thread.innerHTML = '<div style="text-align:center;padding:30px;color:var(--steel);font-size:12px">Aucun message dans cette conversation</div>';
-      return;
-    }
-    thread.innerHTML = timeline.map(msg => {
-      if(msg.dir === 'emp'){
-        return `<div style="display:flex;flex-direction:column;align-items:flex-start">
-          <div class="conv-bubble emp">
-            <div class="bub-sender">👷 ${msg.sender}</div>
-            ${msg.body}
-            <div class="bub-time">${msg.time}</div>
-          </div>
-          ${msg.reply ? `<div class="conv-bubble admin" style="margin-top:4px">
-            <div class="bub-sender">🛡️ Admin</div>
-            ${msg.reply}
-            <div class="bub-time">${msg.replyTime||''}</div>
-          </div>` : ''}
-        </div>`;
-      } else {
-        return `<div style="display:flex;flex-direction:column;align-items:flex-end">
-          <div class="conv-bubble admin">
-            <div class="bub-sender">🛡️ Admin</div>
-            ${msg.body}
-            <div class="bub-time">${msg.time}</div>
-          </div>
-        </div>`;
-      }
-    }).join('');
-    // Scroll to bottom
-    setTimeout(()=>{ thread.scrollTop = thread.scrollHeight; }, 50);
-  }catch(e){
-    thread.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ruby)">Erreur de chargement</div>';
-  }
-}
-
-function closeConv(){
-  const panel = document.getElementById('conv-panel');
-  const backdrop = document.getElementById('conv-backdrop');
-  panel.style.transform = 'translateX(100%)';
-  backdrop.style.display = 'none';
-  setTimeout(()=>{ panel.style.display='none'; }, 300);
-  _convUser = null; _convName = null;
-}
-
-async function sendConvReply(){
-  if(!_convUser){ toast('Aucune conversation ouverte','⚠️'); return; }
-  const ta = document.getElementById('conv-reply-ta');
+function toggleReply(id){ document.getElementById('reply-'+id).classList.toggle('on'); }
+async function sendReply(id){
+  const box = document.getElementById('reply-'+id);
+  const ta  = box.querySelector('textarea');
+  if(!ta.value.trim()){ toast('Écrivez une réponse','⚠️'); return; }
   const replyText = ta.value.trim();
-  if(!replyText){ toast('Écrivez une réponse','⚠️'); return; }
-  const btn = document.getElementById('conv-send-btn');
-  if(btn){ btn.textContent='…'; btn.disabled=true; }
+  const btn = box.querySelector('button');
+  if(btn){btn.textContent='...';btn.disabled=true;}
   try{
-    const now = new Date().toLocaleDateString('fr-TN');
-    const msgId = Date.now();
-    // Update original messages (mark read + store reply)
     const MSGS = await getMsgs();
-    MSGS.forEach(m=>{
-      if((m.user===_convUser)&&!m.reply){ m.unread=false; m.reply=replyText; m.replyTime=now; }
-    });
+    const m = MSGS.find(x => x.id === id);
+    if(m){ m.unread=false; m.reply=replyText; }
     await saveMsgs(MSGS);
-    // Push to employee inbox
-    await pushEmpMsg(_convUser, {
-      id:msgId, from:'الإدارة – الإخوة قربوج',
-      time:now, body:replyText, unread:true
+    if(m) await pushEmpMsg(m.user, {
+      id:Date.now(), from:'الإدارة – الإخوة قربوج',
+      time:new Date().toLocaleDateString('fr-TN'),
+      body:replyText, unread:true
     });
-    ta.value='';
-    if(btn){ btn.textContent='📤 Envoyer — Ctrl+Entrée'; btn.disabled=false; }
-    toast('Message envoyé ✅','','ok');
-    await renderConvThread(_convUser);
+    ta.value=''; box.classList.remove('on');
+    if(btn){btn.textContent='📤 Envoyer';btn.disabled=false;}
+    toast('Réponse envoyée ✅','','ok');
     buildDash(); buildAMsgs();
   }catch(e){
-    if(btn){ btn.textContent='📤 Envoyer — Ctrl+Entrée'; btn.disabled=false; }
-    toast('Erreur envoi','❌','err');
+    if(btn){btn.textContent='📤 Envoyer';btn.disabled=false;}
+    toast('Erreur envoi. Réessayez.','❌','err');
+    console.error('sendReply:',e);
   }
 }
 
