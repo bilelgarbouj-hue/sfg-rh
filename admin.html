@@ -386,11 +386,36 @@ input,textarea,select{font-family:var(--font);outline:none}
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">💬 Messages des employés</div>
       <div id="aMsgList"></div>
     </div>
+  <!-- CONVERSATION PANEL -->
+  <div id="conv-panel" style="display:none;position:fixed;top:0;right:0;width:100%;max-width:480px;height:100vh;background:var(--ink);border-left:1px solid var(--border);z-index:9999;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)">
+    <div style="background:var(--ink2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <button onclick="closeConv()" style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--steel);font-size:13px;cursor:pointer">← Retour</button>
+      <div style="flex:1;min-width:0">
+        <div id="conv-name" style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white)">—</div>
+        <div id="conv-sub" style="font-size:10px;color:var(--steel);margin-top:1px">Historique de la conversation</div>
+      </div>
+      <div id="conv-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--ink);flex-shrink:0">?</div>
+    </div>
+    <div id="conv-thread" style="flex:1;overflow-y:auto;padding:14px 14px 0;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="padding:12px;border-top:1px solid var(--border);background:var(--ink2);flex-shrink:0">
+      <textarea id="conv-reply-ta" rows="2" placeholder="Votre réponse…" style="width:100%;box-sizing:border-box;background:var(--ink3);border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--white);font-size:13px;resize:none;font-family:var(--font)" onkeydown="if(event.key==='Enter'&&event.ctrlKey) sendConvReply()"></textarea>
+      <button onclick="sendConvReply()" id="conv-send-btn" style="width:100%;margin-top:8px;padding:11px;border-radius:9px;background:linear-gradient(135deg,var(--amber),var(--rust));color:var(--ink);font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif">📤 Envoyer — Ctrl+Entrée</button>
+    </div>
+  </div>
+  <div id="conv-backdrop" onclick="closeConv()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998"></div>
 
   </div>
 </div>
 
 <style>
+.conv-bubble{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.55;word-break:break-word}
+.conv-bubble.emp{background:var(--ink3);border:1px solid var(--border);color:var(--white);align-self:flex-start;border-bottom-left-radius:4px}
+.conv-bubble.admin{background:linear-gradient(135deg,rgba(232,160,32,.18),rgba(197,77,26,.12));border:1px solid rgba(232,160,32,.25);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px}
+.conv-bubble .bub-time{font-size:9px;color:var(--steel);margin-top:4px;text-align:right}
+.conv-bubble.emp .bub-time{text-align:left}
+.conv-bubble .bub-sender{font-size:9px;font-weight:700;color:var(--amber);margin-bottom:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px}
+.amsg-card{cursor:pointer;transition:border-color .15s,background .15s}
+.amsg-card:hover{border-color:rgba(232,160,32,.4)!important;background:rgba(232,160,32,.06)!important}
 .btn-filter{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;background:var(--ink3);color:var(--steel);border:1px solid var(--border);transition:all .2s;font-family:var(--cond);letter-spacing:.5px}
 .btn-filter.on{background:var(--amber);color:var(--ink);border-color:var(--amber)}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
@@ -891,13 +916,13 @@ function genDefaultHours(year, month){
   const today = new Date();
   const ty = today.getFullYear(), tm = today.getMonth()+1, td = today.getDate();
   const o = {};
-  for(let i = 1; i <= daysInMonth; i++){
-    const future = (year > ty) || (year===ty && month > tm) || (year===ty && month===tm && i > td);
-    if(future){ o[i] = 0; continue; }
+  for(let i=1; i<=daysInMonth; i++){
+    const future = (year>ty)||(year===ty&&month>tm)||(year===ty&&month===tm&&i>td);
+    if(future){ o[i]=0; continue; }
     const wd = new Date(year, month-1, i).getDay();
-    if(wd === 0)      o[i] = 0;
-    else if(wd === 6) o[i] = +(4 + Math.random()*1.5).toFixed(1);
-    else              o[i] = +(7.5 + Math.random()*1).toFixed(1);
+    if(wd===0)      o[i]=0;
+    else if(wd===6) o[i]=+(4+Math.random()*1.5).toFixed(1);
+    else            o[i]=+(7.5+Math.random()*1).toFixed(1);
   }
   return o;
 }
@@ -1063,10 +1088,7 @@ function arCard(r){
     <div class="ar-top"><span class="ar-emp">👷 ${r.name}</span><span class="ar-type">${r.type}</span></div>
     <div class="ar-detail">${r.detail}${r.note?'<br><em>'+r.note+'</em>':''}<br><small style="color:var(--ink4)">📅 ${r.date}</small></div>
     ${done
-      ? `<div class="ar-done" style="display:flex;align-items:center;justify-content:space-between">
-           <span>${r.status==='approved'?'✅ Approuvée':'❌ Refusée'}</span>
-           <button onclick="aDeleteReq(${r.id})" style="background:rgba(218,54,51,.12);border:1px solid rgba(218,54,51,.3);color:var(--ruby);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer">🗑️ Supprimer</button>
-         </div>`
+      ? `<div class="ar-done" style="display:flex;align-items:center;justify-content:space-between"><span>${r.status==='approved'?'✅ Approuvée':'❌ Refusée'}</span><button onclick="aDeleteReq(${r.id})" style="background:rgba(218,54,51,.12);border:1px solid rgba(218,54,51,.3);color:var(--ruby);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer">🗑️ Supprimer</button></div>`
       : `<div class="ar-actions">
            <button class="btn-ok" onclick="aAct(${r.id},'approved')">✅ Approuver</button>
            <button class="btn-no" onclick="aAct(${r.id},'rejected')">❌ Refuser</button>
@@ -1100,9 +1122,7 @@ async function aDeleteReq(id){
   if(!confirm('Supprimer cette demande définitivement ?')) return;
   try{ await dbSet('requests/req_'+id, null); }catch(e){}
   const list = await getReqs();
-  const updated = list.filter(r => r.id !== id);
-  await saveReqs(updated);
-  // Retirer de l'UI immédiatement
+  await saveReqs(list.filter(r => r.id !== id));
   const card = document.getElementById('arc-'+id);
   if(card) card.remove();
   const row = document.getElementById('act-row-'+id);
@@ -1373,7 +1393,7 @@ async function buildAWorkers(){
     const effPass = pwdsData[key] || w.pass || w.tel;
     const changed = !!(pwdChangedData[key]);
     const pwdTxt = changed ? `✅ Modifié (${effPass})` : `🔑 ${effPass}`;
-    // Afficher 0h initialement — les vraies heures Firebase chargées en arrière-plan
+    // Afficher 0h — vraies heures chargées en arrière-plan
     const s = {totalH:0, normalH:0, suppH:0, workedDays:0, netAuto:0};
     const netFinal = 0;
     const ovr = null;
@@ -1426,7 +1446,7 @@ async function buildAWorkers(){
       if(!h) return; // keep defaults
       const ovr = await getSalaryOverride(w.username, curHoursYear, curHoursMonth);
       const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
-      const netFinal = ovr?.net_override !== undefined ? ovr.net_override : s.netAuto;
+      const netFinal = (ovr?.is_manual && ovr?.net_override !== undefined) ? ovr.net_override : s.netAuto;
       // Update the specific worker row hours display
       const hrsEl = document.querySelector(`#wd-${i} .wk-hrs-live`);
       if(hrsEl) hrsEl.textContent = s.totalH+'h';
@@ -1596,18 +1616,94 @@ async function buildAMsgs(){
 
   let MSGS=[];
   try{ MSGS = await getMsgs(); }catch(e){ console.warn('getMsgs failed',e); }
-  document.getElementById('aMsgList').innerHTML = !MSGS.length
+  const byUser = {};
+  MSGS.forEach(m => { const u=m.user||m.from; if(!byUser[u]) byUser[u]=[]; byUser[u].push(m); });
+  const threads = Object.entries(byUser);
+  document.getElementById('aMsgList').innerHTML = !threads.length
     ? '<div style="text-align:center;padding:24px;color:var(--steel)">Aucun message reçu</div>'
-    : MSGS.map(m => `
-    <div class="amsg-card ${m.unread?'unread':''}">
-      <div class="amsg-top"><span class="amsg-from">👷 ${m.from}</span><span class="amsg-time">${m.time}</span></div>
-      <div class="amsg-body">${m.body}</div>
-      <button class="btn-reply" onclick="toggleReply(${m.id})">💬 Répondre</button>
-      <div class="amsg-reply-box" id="reply-${m.id}">
-        <textarea placeholder="Votre réponse…"></textarea>
-        <button class="btn-send-reply" onclick="sendReply(${m.id})">📤 Envoyer</button>
-      </div>
-    </div>`).join('');
+    : threads.map(([user, msgs]) => {
+        const last=msgs[0], unread=msgs.some(m=>m.unread);
+        return `<div class="amsg-card ${unread?'unread':''}" onclick="openConv('${user}','${last.from.replace(/'/g,"\'")}')">
+          <div class="amsg-top">
+            <span class="amsg-from">👷 ${last.from} ${unread?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle"></span>':''}</span>
+            <span style="display:flex;align-items:center;gap:8px"><span class="amsg-time">${last.time}</span><span style="font-size:10px;background:var(--ink3);border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--steel)">${msgs.length} msg${msgs.length>1?'s':''} 💬</span></span>
+          </div>
+          <div class="amsg-body" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${last.body}</div>
+          ${last.reply?`<div style="font-size:11px;color:var(--amber);margin-top:4px">↩ ${last.reply.substring(0,60)}${last.reply.length>60?'…':''}</div>`:''}
+        </div>`;
+      }).join('');
+}
+// ── CONVERSATION ──
+let _convUser=null,_convName=null;
+async function openConv(username,displayName){
+  _convUser=username; _convName=displayName;
+  document.getElementById('conv-name').textContent=displayName;
+  document.getElementById('conv-sub').textContent=username;
+  document.getElementById('conv-avatar').textContent=displayName.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+  document.getElementById('conv-thread').innerHTML='<div style="text-align:center;padding:20px;color:var(--steel);font-size:12px">Chargement…</div>';
+  const panel=document.getElementById('conv-panel');
+  const backdrop=document.getElementById('conv-backdrop');
+  panel.style.display='flex'; backdrop.style.display='block';
+  setTimeout(()=>{ panel.style.transform='translateX(0)'; },10);
+  document.getElementById('conv-reply-ta').value='';
+  await renderConvThread(username);
+  try{
+    const MSGS=await getMsgs(); let changed=false;
+    MSGS.forEach(m=>{ if((m.user===username)&&m.unread){ m.unread=false; changed=true; }});
+    if(changed){ await saveMsgs(MSGS); buildDash(); buildAMsgs(); }
+  }catch(e){}
+}
+async function renderConvThread(username){
+  const thread=document.getElementById('conv-thread');
+  try{
+    const allMsgs=await getMsgs();
+    const empMsgs=allMsgs.filter(m=>m.user===username||m.from===_convName);
+    const adminMsgs=await getEmpMsgs(username);
+    const timeline=[];
+    empMsgs.forEach(m=>timeline.push({dir:'emp',body:m.body,time:m.time,sender:_convName,reply:m.reply||null,replyTime:m.replyTime||null,ts:m.id||0}));
+    adminMsgs.forEach(m=>timeline.push({dir:'admin',body:m.body,time:m.time,sender:'الإدارة',ts:m.id||0}));
+    timeline.sort((a,b)=>a.ts-b.ts);
+    if(!timeline.length){ thread.innerHTML='<div style="text-align:center;padding:30px;color:var(--steel);font-size:12px">Aucun message</div>'; return; }
+    thread.innerHTML=timeline.map(msg=>{
+      if(msg.dir==='emp') return `<div style="display:flex;flex-direction:column;align-items:flex-start">
+        <div class="conv-bubble emp"><div class="bub-sender">👷 ${msg.sender}</div>${msg.body}<div class="bub-time">${msg.time}</div></div>
+        ${msg.reply?`<div class="conv-bubble admin" style="margin-top:4px"><div class="bub-sender">🛡️ Admin</div>${msg.reply}<div class="bub-time">${msg.replyTime||''}</div></div>`:''}
+      </div>`;
+      return `<div style="display:flex;flex-direction:column;align-items:flex-end">
+        <div class="conv-bubble admin"><div class="bub-sender">🛡️ Admin</div>${msg.body}<div class="bub-time">${msg.time}</div></div>
+      </div>`;
+    }).join('');
+    setTimeout(()=>{ thread.scrollTop=thread.scrollHeight; },50);
+  }catch(e){ thread.innerHTML='<div style="text-align:center;padding:20px;color:var(--ruby)">Erreur</div>'; }
+}
+function closeConv(){
+  const panel=document.getElementById('conv-panel');
+  panel.style.transform='translateX(100%)';
+  document.getElementById('conv-backdrop').style.display='none';
+  setTimeout(()=>{ panel.style.display='none'; },300);
+  _convUser=null; _convName=null;
+}
+async function sendConvReply(){
+  if(!_convUser){ toast('Aucune conversation','⚠️'); return; }
+  const ta=document.getElementById('conv-reply-ta');
+  const replyText=ta.value.trim();
+  if(!replyText){ toast('Écrivez une réponse','⚠️'); return; }
+  const btn=document.getElementById('conv-send-btn');
+  if(btn){ btn.textContent='…'; btn.disabled=true; }
+  try{
+    const now=new Date().toLocaleDateString('fr-TN');
+    const MSGS=await getMsgs();
+    MSGS.forEach(m=>{ if(m.user===_convUser&&!m.reply){ m.unread=false; m.reply=replyText; m.replyTime=now; }});
+    await saveMsgs(MSGS);
+    await pushEmpMsg(_convUser,{id:Date.now(),from:'الإدارة – الإخوة قربوج',time:now,body:replyText,unread:true});
+    ta.value='';
+    if(btn){ btn.textContent='📤 Envoyer — Ctrl+Entrée'; btn.disabled=false; }
+    toast('Message envoyé ✅','','ok');
+    await renderConvThread(_convUser); buildDash(); buildAMsgs();
+  }catch(e){
+    if(btn){ btn.textContent='📤 Envoyer — Ctrl+Entrée'; btn.disabled=false; }
+    toast('Erreur envoi','❌','err');
+  }
 }
 function toggleReply(id){ document.getElementById('reply-'+id).classList.toggle('on'); }
 async function sendReply(id){
