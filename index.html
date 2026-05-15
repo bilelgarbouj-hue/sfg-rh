@@ -319,7 +319,7 @@ select.finput{-webkit-appearance:none}textarea.finput{resize:none;min-height:90p
     <div class="err-box" id="lerr">اسم المستخدم أو كلمة المرور غير صحيحة</div>
     <div class="demo-box">
       <strong id="l-demo-t">أول تسجيل دخول؟</strong>
-      <span id="l-demo-b">كلمة المرور الافتراضية هي رقم هاتفك (8 أرقام).<br>مثال: <b>55100001</b><br><br>👷 <b>benali.ahmed</b> → <b>55100001</b></span>
+      <span id="l-demo-b">كلمة المرور الافتراضية هي رقم هاتفك (8 أرقام).</span>
     </div>
 
     <!-- Install App Button -->
@@ -684,7 +684,7 @@ const TR={
     id_lbl:'اسم المستخدم', pwd_lbl:'كلمة المرور', btn_login:'دخول',
     err_login:'اسم المستخدم أو كلمة المرور غير صحيحة',
     demo_t:'أول تسجيل دخول؟',
-    demo_b:'كلمة المرور الافتراضية هي رقم هاتفك (8 أرقام).<br>مثال: <b>55100001</b><br><br>👷 <b>benali.ahmed</b> → <b>55100001</b>',
+    demo_b:'كلمة المرور الافتراضية هي رقم هاتفك (8 أرقام).',
     cp_title:'تغيير كلمة المرور', cp_sub_first:'تم الكشف عن أول دخول.<br>الرجاء اختيار كلمة مرور شخصية.', cp_sub_change:'تعديل كلمة المرور الشخصية.',
     cp_l1:'كلمة المرور الحالية', cp_l2:'كلمة المرور الجديدة', cp_l3:'تأكيد كلمة المرور',
     cp_btn:'حفظ', cp_skip:'تخطي',
@@ -702,7 +702,7 @@ const TR={
     sv6:'ملفي', sv6d:'المعلومات الشخصية',
     nav_h:'الرئيسية', nav_hr:'الساعات', nav_s:'الراتب', nav_r:'الطلبات', nav_p:'ملفي',
     months:['جانفي','فيفري','مارس','أفريل','ماي','جوان','جويلية','أوت','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],
-    days:['أحد','إثن','ثلا','أرب','خمي','سبت','أحد'],
+    days:['أحد','إثن','ثلا','أرب','خمي','جمع','سبت'],
     hh_nl:'الساعات العادية', hh_ns:'الإثنين - السبت',
     hh_sl:'الساعات الإضافية', hh_ss:'الأحد × 1.75',
     hh_tl:'المجموع', hh_ts:'هذا الشهر', hh_dl:'أيام العمل', hh_ds:'في الشهر',
@@ -734,7 +734,7 @@ const TR={
     id_lbl:'Identifiant', pwd_lbl:'Mot de passe', btn_login:'Se connecter',
     err_login:'Identifiant ou mot de passe incorrect',
     demo_t:'Première connexion ?',
-    demo_b:'Votre mot de passe initial est votre <b>numéro de téléphone</b> (8 chiffres).<br>Exemple: <b>55100001</b><br><br>👷 <b>benali.ahmed</b> → <b>55100001</b>',
+    demo_b:'Votre mot de passe initial est votre <b>numéro de téléphone</b> (8 chiffres).',
     cp_title:'Changer mon mot de passe', cp_sub_first:'Première connexion.<br>Choisissez un mot de passe personnel.', cp_sub_change:'Modifier votre mot de passe.',
     cp_l1:'Mot de passe actuel', cp_l2:'Nouveau mot de passe', cp_l3:'Confirmer',
     cp_btn:'Enregistrer', cp_skip:'Passer',
@@ -909,11 +909,7 @@ async function dbEmpSet(path,val){
 }
 
 /* ══ DATA ══ */
-const UB={
-  'benali.ahmed':{dp:'55100001',name_ar:'أحمد بن علي',name_fr:'Ahmed Benali',in_ar:'أحمد',in_fr:'Ahmed',fn_ar:'بن علي',fn_fr:'Benali',id:'GRB-001',taux:12.5,cin:'10234567',cnss:'987001',tel:'+216 55 100 001',debut:'01/03/2022',pa:'عامل',pf:'Ouvrier',av:200},
-  'khelif.mohamed':{dp:'55100002',name_ar:'محمد خليف',name_fr:'Mohamed Khelif',in_ar:'محمد',in_fr:'Mohamed',fn_ar:'خليف',fn_fr:'Khelif',id:'GRB-002',taux:13,cin:'20234567',cnss:'987002',tel:'+216 55 100 002',debut:'15/06/2021',pa:'عامل',pf:'Ouvrier',av:0},
-  'ziani.karim':{dp:'55100003',name_ar:'كريم الزياني',name_fr:'Karim Ziani',in_ar:'كريم',in_fr:'Karim',fn_ar:'الزياني',fn_fr:'Ziani',id:'GRB-003',taux:11.5,cin:'30234567',cnss:'987003',tel:'+216 55 100 003',debut:'10/01/2023',pa:'عامل',pf:'Ouvrier',av:150},
-};
+const UB={};
 
 async function getBase(username){
   // Check Firebase workers list (admin-created accounts)
@@ -1149,7 +1145,7 @@ async function updateStats(){
   const s = calcSalEmp(h,CU.taux,CU.av,CY,CM);
   // Check for salary override
   const ovr = await getSalaryOvrEmp(CU.u,CY,CM);
-  const netFinal = ovr?.net_override!==undefined ? ovr.net_override : s.sal;
+  const netFinal = (ovr?.is_manual && ovr?.net_override!==undefined) ? ovr.net_override : s.sal;
   $('st-h').textContent=s.n;$('st-s').textContent=s.s;$('st-sal').textContent=netFinal.toLocaleString('fr-TN');
 }
 
@@ -1223,7 +1219,7 @@ async function buildSal(){
   const s=calcSalEmp(h,CU.taux,CU.av,CY,CM); // ← fixed
   // Check for admin override
   const ovr = await getSalaryOvrEmp(CU.u,CY,CM);
-  const netFinal = ovr?.net_override!==undefined ? ovr.net_override : s.sal;
+  const netFinal = (ovr?.is_manual && ovr?.net_override!==undefined) ? ovr.net_override : s.sal;
   $('sal-amt').textContent=netFinal.toLocaleString('fr-TN');
   // Show brut salary (before avance deduction)
   const brutTotal = +(s.brutN + s.brutS).toFixed(2);
