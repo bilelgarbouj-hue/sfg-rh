@@ -1235,6 +1235,15 @@ async function loadHoursGrid(){
         <div style="font-size:22px;color:var(--steel);margin-top:18px">DT</div>
       </div>
       <div style="margin-bottom:8px">
+        <label style="font-size:11px;color:var(--steel);display:block;margin-bottom:5px">Déduction de salaire (DT)</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" id="sal-deduction" value="${override?.deduction||0}" min="0" step="0.01" placeholder="0"
+            style="flex:1;background:var(--ink3);border:1.5px solid rgba(218,54,51,.35);border-radius:8px;padding:9px 12px;color:#ff7b72;font-size:15px;font-family:var(--mono);font-weight:600"
+            onchange="applyDeduction()"/>
+          <div style="font-size:13px;color:var(--ruby);font-weight:700">DT</div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
         <label style="font-size:11px;color:var(--steel);display:block;margin-bottom:5px">Note / motif de retenue</label>
         <input type="text" id="sal-note" value="${override?.note||''}" placeholder="ex: Retenue CNSS 9%, Absence..."
           style="width:100%;background:var(--ink3);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--white);font-size:13px"/>
@@ -1330,11 +1339,31 @@ function resetOverride(){
     const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
     document.getElementById('sal-override').value = s.netAuto;
     document.getElementById('sal-note').value = '';
+    const dedEl = document.getElementById('sal-deduction');
+    if(dedEl) dedEl.value = 0;
     document.getElementById('sum-auto').textContent = s.netAuto.toLocaleString('fr-TN') + ' DT';
   buildAdminDeductions(w);
   });
 }
 
+
+function applyDeduction(){
+  const deduction = parseFloat(document.getElementById('sal-deduction')?.value)||0;
+  const WK = WORKERS_CACHE || [];
+  const w = WK.find(x => x.username === curHoursUser);
+  if(!w) return;
+  // Rebuild hours from current inputs
+  const daysInMonth = new Date(curHoursYear, curHoursMonth, 0).getDate();
+  const h = {};
+  for(let d=1; d<=daysInMonth; d++){
+    const el = document.getElementById('hday-'+d);
+    if(el) h[d] = parseFloat(el.value)||0;
+  }
+  const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
+  const newNet = Math.max(0, s.netAuto - deduction);
+  const overrideEl = document.getElementById('sal-override');
+  if(overrideEl) overrideEl.value = newNet.toFixed(2);
+}
 
 async function buildAdminDeductions(w){
   const sec = document.getElementById('admin-deductions');
@@ -1384,6 +1413,7 @@ async function saveHoursAndSalary(){
   }
   const overrideVal = parseFloat(document.getElementById('sal-override').value);
   const noteVal = document.getElementById('sal-note').value.trim();
+  const deductionVal = parseFloat(document.getElementById('sal-deduction')?.value)||0;
 
   // Get auto-calculated for comparison
   const WK = await getWorkers();
@@ -1395,6 +1425,7 @@ async function saveHoursAndSalary(){
   await saveSalaryOverride(curHoursUser, curHoursYear, curHoursMonth, {
     net_override: overrideVal,
     note: noteVal,
+    deduction: deductionVal,
     is_manual: isManual,
     net_auto: s ? s.netAuto : null,
     saved_at: new Date().toISOString()
