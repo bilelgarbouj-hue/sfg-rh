@@ -1276,7 +1276,15 @@ async function buildSal(){
     <div class="br-row"><span class="br-lbl">${t.br_n} (${s.n}h × ${CU.taux} DT)</span><span class="br-val p">+${s.brutN.toLocaleString('fr-TN')} DT</span></div>
     <div class="br-row"><span class="br-lbl">${t.br_s} (${s.s}h × ${CU.taux} × 1.75)</span><span class="br-val p">+${s.brutS.toLocaleString('fr-TN')} DT</span></div>
     ${CU.av>0?`<div class="br-row"><span class="br-lbl">${t.br_a}</span><span class="br-val m">−${CU.av} DT</span></div>`:''}`;
-  if(ovr?.is_manual && ovr?.note){
+  if(ovr?.deduction > 0){
+    const dedLabel = ovr.note
+      ? ovr.note
+      : (CL==='ar' ? 'خصم من الراتب' : 'Déduction de salaire');
+    breakdown += `<div class="br-row" style="background:rgba(218,54,51,.06);border-color:rgba(218,54,51,.15)">
+      <span class="br-lbl" style="color:var(--ruby)">✂️ ${dedLabel}</span>
+      <span class="br-val m">−${(+ovr.deduction).toLocaleString('fr-TN')} DT</span>
+    </div>`;
+  } else if(ovr?.is_manual && ovr?.note){
     breakdown += `<div class="br-row" style="background:rgba(218,54,51,.06);border-color:rgba(218,54,51,.15)"><span class="br-lbl" style="color:var(--ruby)">${ovr.note}</span><span class="br-val m">−${(s.sal-netFinal).toFixed(2)} DT</span></div>`;
   }
   breakdown += `<div class="br-div"></div><div class="br-row br-total"><span class="br-lbl" style="font-weight:700;color:var(--white)">${t.br_net}</span><span class="br-val t">${netFinal.toLocaleString('fr-TN')} DT</span></div>`;
