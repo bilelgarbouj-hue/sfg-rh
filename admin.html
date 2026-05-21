@@ -1193,7 +1193,7 @@ async function loadHoursGrid(){
   // Load salary override if any
   const override = await getSalaryOverride(curHoursUser, curHoursYear, curHoursMonth);
   const s = calcSalaryFromHours(h, w.taux, w.avance, curHoursYear, curHoursMonth);
-  const netFinal = (override && override.net_override !== undefined) ? override.net_override : s.netAuto;
+  const netFinal = (override?.is_manual && override?.net_override !== undefined) ? override.net_override : s.netAuto;
 
   const monthLabel = MONTHS_FR[curHoursMonth-1] + ' ' + curHoursYear;
 
@@ -1247,7 +1247,7 @@ async function loadHoursGrid(){
           ↺ Recalc auto
         </button>
       </div>
-      ${override?.net_override !== undefined ? `<div style="margin-top:8px;font-size:11px;color:var(--amber)">⚠️ Salaire modifié manuellement (calcul auto : ${s.netAuto.toLocaleString('fr-TN')} DT)</div>` : ''}
+      ${override?.is_manual ? `<div style="margin-top:8px;font-size:11px;color:var(--amber)">⚠️ Salaire modifié manuellement (calcul auto : ${s.netAuto.toLocaleString('fr-TN')} DT)</div>` : ''}
     </div>
 
     <!-- Day headers -->
@@ -1257,6 +1257,8 @@ async function loadHoursGrid(){
 
     <!-- Calendar grid -->
     ${buildDayGrid(h, curHoursYear, curHoursMonth)}`;
+  // Afficher déductions après rendu HTML
+  setTimeout(()=>{ buildAdminDeductions(w); }, 0);
   }catch(e){
     console.error('loadHoursGrid error:',e);
     document.getElementById('hours-grid').innerHTML=
