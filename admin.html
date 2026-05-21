@@ -470,7 +470,7 @@ input,textarea,select{font-family:var(--font);outline:none}
     </div>
     <div class="mrow2">
       <div class="mfield"><label>Taux horaire (DT)</label><input id="acct-taux" type="number" placeholder="12"/></div>
-      <div class="mfield"><label>Avance (DT)</label><input id="acct-avance" type="number" placeholder="0"/></div>
+
     </div>
     <div class="mrow2">
       <div class="mfield"><label>Poste</label>
@@ -1214,6 +1214,12 @@ async function loadHoursGrid(){
       </div>
     </div>
 
+    <!-- Déductions du mois (avance + congés) -->
+    <div id="admin-deductions" style="margin-bottom:12px;display:none">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--steel);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">DÉDUCTIONS DU MOIS</div>
+      <div id="admin-deductions-list"></div>
+    </div>
+
     <!-- Salary override section -->
     <div style="background:rgba(232,160,32,.06);border:1.5px solid rgba(232,160,32,.2);border-radius:10px;padding:14px;margin-bottom:14px">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">
@@ -1323,9 +1329,48 @@ function resetOverride(){
     document.getElementById('sal-override').value = s.netAuto;
     document.getElementById('sal-note').value = '';
     document.getElementById('sum-auto').textContent = s.netAuto.toLocaleString('fr-TN') + ' DT';
+  buildAdminDeductions(w);
   });
 }
 
+
+async function buildAdminDeductions(w){
+  const sec = document.getElementById('admin-deductions');
+  const list = document.getElementById('admin-deductions-list');
+  if(!sec || !list || !w) return;
+  const items = [];
+  // Avance sur salaire
+  if(w.avance > 0){
+    items.push({ico:'💵', label:'Avance sur salaire', val:'− '+w.avance+' DT', color:'var(--ruby)'});
+  }
+  // Congés approuvés du mois sélectionné
+  try{
+    const allReqs = await getReqs();
+    const monthStr = ('0'+curHoursMonth).slice(-2)+'/'+curHoursYear;
+    const conges = allReqs.filter(r =>
+      r && r.user === curHoursUser &&
+      r.status === 'approved' &&
+      (r.type === 'Demande de congé' || r.type === 'Congé maladie') &&
+      r.date && r.date.endsWith(monthStr.split('/').reverse().join('/').slice(-4))
+    );
+    conges.forEach(r => {
+      items.push({
+        ico: r.type==='Congé maladie'?'🏥':'🏖️',
+        label: r.type,
+        val: r.detail || r.date,
+        color:'var(--amber)'
+      });
+    });
+  }catch(e){}
+  if(!items.length){ sec.style.display='none'; return; }
+  sec.style.display='block';
+  list.innerHTML = items.map(item=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--ink3);border:1px solid var(--border);border-radius:8px;margin-bottom:5px">
+      <span style="font-size:16px">${item.ico}</span>
+      <div style="flex:1;font-size:12px;color:var(--white)">${item.label}</div>
+      <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${item.color}">${item.val}</div>
+    </div>`).join('');
+}
 
 async function saveHoursAndSalary(){
   if(!curHoursUser){ toast('Sélectionnez un ouvrier','⚠️'); return; }
