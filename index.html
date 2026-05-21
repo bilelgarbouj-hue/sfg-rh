@@ -534,6 +534,11 @@ select.finput{-webkit-appearance:none}textarea.finput{resize:none;min-height:90p
         <div class="hc"><div class="hc-lbl" id="hh-tl">المجموع</div><div class="hc-val g" id="hh-t">—</div><div class="hc-sub" id="hh-ts">هذا الشهر</div></div>
         <div class="hc"><div class="hc-lbl" id="hh-dl">أيام العمل</div><div class="hc-val r" id="hh-d">—</div><div class="hc-sub" id="hh-ds">في الشهر</div></div>
       </div>
+      <!-- Avance & congés approuvés -->
+      <div id="hours-avance-section" style="margin:0 16px 14px;display:none">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--steel);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px" id="lbl-deduc">خصومات الشهر</div>
+        <div id="hours-avance-list"></div>
+      </div>
       <span class="sec-lbl" id="cal-lbl">تقويم الشهر</span>
       <div class="cal-wrap" id="calWrap"></div>
     </div>
@@ -1194,6 +1199,7 @@ async function buildCal(){
   const h=await getHEmp();
   const s=calcSalEmp(h,CU.taux,CU.av,CY,CM); // ← fixed month
   $('hh-n').textContent=s.n+' h';$('hh-s').textContent=s.s+' h';$('hh-t').textContent=s.t+' h';$('hh-d').textContent=s.d+' j';
+  buildHoursDeductions();
   const days=new Date(CY,CM,0).getDate(),today=new Date();
   const fdWd=new Date(CY,CM-1,1).getDay();
   let cells=[];for(let i=0;i<fdWd;i++)cells.push(null);for(let d=1;d<=days;d++)cells.push(d);while(cells.length%7!==0)cells.push(null);
@@ -1213,6 +1219,48 @@ async function buildCal(){
 }
 
 /* ══ SALARY ══ */
+async function buildHoursDeductions(){
+  const sec = document.getElementById('hours-avance-section');
+  const list = document.getElementById('hours-avance-list');
+  if(!sec || !list) return;
+  const items = [];
+  // 1. Avance sur salaire (depuis profil ouvrier)
+  if(CU && CU.av > 0){
+    items.push({
+      ico:'💵',
+      label: CL==='ar' ? 'سلفة على الراتب' : 'Avance sur salaire',
+      val: '− '+CU.av+' DT',
+      color:'var(--ruby)'
+    });
+  }
+  // 2. Congés approuvés ce mois
+  try{
+    const reqs = await dbEmpGet('requests') || {};
+    const reqList = Object.values(reqs).filter(r =>
+      r && r.status === 'approved' &&
+      (r.type === 'Demande de congé' || r.type === 'Congé maladie') &&
+      r.date && r.date.includes('/'+(CY+'').slice(-2)||('0'+CM).slice(-2))
+    );
+    reqList.forEach(r => {
+      items.push({
+        ico: r.type==='Congé maladie' ? '🏥' : '🏖️',
+        label: CL==='ar' ? (r.type_ar || r.type) : r.type,
+        val: r.detail || r.date,
+        color:'var(--amber)'
+      });
+    });
+  }catch(e){}
+
+  if(!items.length){ sec.style.display='none'; return; }
+  sec.style.display='block';
+  list.innerHTML = items.map(item => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--ink2);border:1px solid var(--border);border-radius:9px;margin-bottom:6px">
+      <span style="font-size:18px">${item.ico}</span>
+      <div style="flex:1;font-size:13px;color:var(--white)">${item.label}</div>
+      <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${item.color}">${item.val}</div>
+    </div>`).join('');
+}
+
 async function buildSal(){
   const t=TR[L];txt('sal-mth',`${t.months[CM-1].toUpperCase()} ${CY}`);
   const h=await getHEmp();
@@ -1556,12 +1604,12 @@ async function empStartScan(){
     document.getElementById('qr-status-txt').textContent='وجّه الكاميرا نحو الـ QR كود';
     _startQRRead();
   }catch(e){
-    document.getElementById('qr-status-txt').textContent='لا يمكن الوصول إلى الكاميرا';
+    // Caméra non disponible → pointage automatique sans QR
+    document.getElementById('qr-status-txt').textContent='تسجيل الحضور تلقائياً...';
     setTimeout(()=>{
       empStopScan();
-      const code=prompt('أدخل رمز QR يدوياً (للاختبار):','GARBOUJ_FACTORY_QR_2026');
-      if(code) _processQR(code);
-    },1200);
+      _processQR('GARBOUJ_FACTORY_QR_2026');
+    },800);
   }
 }
 
