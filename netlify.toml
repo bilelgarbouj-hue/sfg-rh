@@ -1,0 +1,8 @@
+[build]
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/firebase-messaging-sw.js"
+  [headers.values]
+    Service-Worker-Allowed = "/"
+    Cache-Control = "no-cache"
