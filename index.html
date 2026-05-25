@@ -1098,7 +1098,7 @@ async function doLogin(){
       document.getElementById('cp-sub').innerHTML=T('cp_sub_first');
       $('cp-skip').style.display='block';
       ['cp-old','cp-new','cp-conf'].forEach(i=>$(i).value='');
-    }else{showS('app');initApp();}
+    }else{showS('app');initApp();initFCM(CU.u, false);}
   }catch(e){
     console.error('Login error:',e);
     $('lerr').textContent=T('err_login');
@@ -1323,6 +1323,13 @@ async function submitReq(){
   const det=tp==='avance'&&am?`${am} DT`:d1&&d2?`${d1} – ${d2}`:'';
   await pushReqEmp({id:Date.now(),user:CU.u,name:L==='ar'?CU.name_ar:CU.name_fr,type:fr[tp],type_ar:ar[tp],status:'pending',detail:det,date:new Date().toLocaleDateString('fr-TN'),note});
   toast(t.req_ok,'✅','ok');['rtype','rnote','rd1','rd2','ramt'].forEach(id=>$(id).value='');
+  // Push notif → admin
+  const empName = L==='ar' ? CU.name_ar : CU.name_fr;
+  pushNotif("__admin__",
+    "📋 Nouvelle demande — " + empName,
+    (fr[tp] || tp) + (det ? ' : ' + det : ''),
+    { type: "demande", username: CU.u }
+  );
   go('requests');setNav($('bn-reqs'));
 }
 
@@ -1354,6 +1361,13 @@ async function sendMsg(){
   list.unshift({id:Date.now(),from:L==='ar'?CU.name_ar:CU.name_fr,user:CU.u,time:new Date().toLocaleDateString('fr-TN'),body:v,unread:true});
   await dbEmpSet('messages',list);
   $('msgTxt').value='';toast(t.msg_ok,'✅','ok');
+  // Push notif → admin
+  const senderName = L==='ar' ? CU.name_ar : CU.name_fr;
+  pushNotif("__admin__",
+    "💬 Message de " + senderName,
+    v.substring(0, 80),
+    { type: "message", username: CU.u }
+  );
 }
 
 /* ══ PROFILE ══ */
@@ -2172,6 +2186,47 @@ async function boot(){
 }
 boot();
 
+</script>
+
+<!-- ════ FCM PUSH NOTIFICATIONS ════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<script>
+const FCM_VAPID = "BFU4xFzAklQJbnnLju8M43P54NMENjDYXnV8c8oGvEGaIVFIRt7Ado8b1RkBDlNZKvsVHRlyRYww3c_aNff-AVl";
+const NOTIF_URL = "/.netlify/functions/send-notif";
+
+async function initFCM(username, isAdmin = false) {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    const messaging = firebase.messaging();
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { console.warn("Notifications refusées"); return; }
+    const token = await messaging.getToken({ vapidKey: FCM_VAPID, serviceWorkerRegistration: reg });
+    if (!token) return;
+    const key = isAdmin ? "__admin__" : username.replace(/\./g, "_");
+    await firebase.database().ref("fcm_tokens/" + key).set(token);
+    console.log("✅ FCM token enregistré (" + username + ")");
+    messaging.onMessage(payload => {
+      const { title, body } = payload.notification || {};
+      if (Notification.permission === "granted")
+        new Notification(title || "SFG Garbouj", { body, icon: "/icon-192.png" });
+    });
+  } catch(e) { console.warn("FCM init:", e.message); }
+}
+
+async function pushNotif(recipientUsername, title, body, data = {}) {
+  try {
+    const key = recipientUsername === "__admin__" ? "__admin__" : recipientUsername.replace(/\./g, "_");
+    const snap = await firebase.database().ref("fcm_tokens/" + key).get();
+    const token = snap.val();
+    if (!token) return;
+    await fetch(NOTIF_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, title, body, data })
+    });
+  } catch(e) { console.warn("pushNotif:", e.message); }
+}
 </script>
 </body>
 </html>
