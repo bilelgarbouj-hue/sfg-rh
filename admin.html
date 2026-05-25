@@ -986,6 +986,7 @@ async function aLogin(){
     buildDash();
     startNotifications();
     getReqs().then(r=>{ lastReqCount=r.filter(x=>x.status==='pending').length; });
+    initFCM("admin", true);
   }catch(e){
     clearTimeout(loginTimeout);
     document.getElementById('aerr').textContent = 'Erreur de connexion. Réessayez.';
@@ -1115,6 +1116,12 @@ async function aAct(id, status){
     status==='approved'?'Demande approuvée ✅':'Demande refusée ❌',
     `${r.name} – ${r.type}`,
     status==='approved'?'✅':'❌', 'reqs'
+  );
+  // Push notif → employé
+  pushNotif(r.user,
+    status==='approved' ? '✅ Votre demande a été approuvée' : '❌ Votre demande a été refusée',
+    `${r.type}${r.detail?' – '+r.detail:''}`,
+    { type: 'demande_status', status }
   );
 }
 
@@ -1804,6 +1811,12 @@ async function sendReply(id){
     if(btn){btn.textContent='📤 Envoyer';btn.disabled=false;}
     toast('Réponse envoyée ✅','','ok');
     buildDash(); buildAMsgs();
+    // Push notif → employé
+    if(m) pushNotif(m.user,
+      '💬 Réponse de l'administration',
+      replyText.substring(0, 80),
+      { type: 'admin_reply' }
+    );
   }catch(e){
     if(btn){btn.textContent='📤 Envoyer';btn.disabled=false;}
     toast('Erreur envoi. Réessayez.','❌','err');
@@ -4909,5 +4922,46 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 <!-- ══ FIN MODAL ÉDITION POINTAGE ══════════════════════════ -->
+
+<!-- ════ FCM PUSH NOTIFICATIONS ════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<script>
+const FCM_VAPID = "BFU4xFzAklQJbnnLju8M43P54NMENjDYXnV8c8oGvEGaIVFIRt7Ado8b1RkBDlNZKvsVHRlyRYww3c_aNff-AVl";
+const NOTIF_URL = "/.netlify/functions/send-notif";
+
+async function initFCM(username, isAdmin = false) {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    const messaging = firebase.messaging();
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { console.warn("Notifications refusées"); return; }
+    const token = await messaging.getToken({ vapidKey: FCM_VAPID, serviceWorkerRegistration: reg });
+    if (!token) return;
+    const key = isAdmin ? "__admin__" : username.replace(/\./g, "_");
+    await firebase.database().ref("fcm_tokens/" + key).set(token);
+    console.log("✅ FCM token enregistré (" + (isAdmin ? "admin" : username) + ")");
+    messaging.onMessage(payload => {
+      const { title, body } = payload.notification || {};
+      if (Notification.permission === "granted")
+        new Notification(title || "SFG Garbouj", { body, icon: "/icon-192.png" });
+    });
+  } catch(e) { console.warn("FCM init:", e.message); }
+}
+
+async function pushNotif(recipientUsername, title, body, data = {}) {
+  try {
+    const key = recipientUsername === "__admin__" ? "__admin__" : recipientUsername.replace(/\./g, "_");
+    const snap = await firebase.database().ref("fcm_tokens/" + key).get();
+    const token = snap.val();
+    if (!token) return;
+    await fetch(NOTIF_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, title, body, data })
+    });
+  } catch(e) { console.warn("pushNotif:", e.message); }
+}
+</script>
 </body>
 </html>
