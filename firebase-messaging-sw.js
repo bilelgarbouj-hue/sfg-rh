@@ -3,7 +3,7 @@ importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js
 importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js");
 
 firebase.initializeApp({
-  apiKey: "AIzaSyDOdhOTBINTItOGI3Mi00YTRkLWFkYjMtZjQ2MWMzNjAyM2Q5",
+  apiKey: "AIzaSyDEhDsv--XRg9MPSt3bQQ--paWxyUhLXWM",
   authDomain: "garbouj-app.firebaseapp.com",
   databaseURL: "https://garbouj-app-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "garbouj-app",
