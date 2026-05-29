@@ -1323,13 +1323,6 @@ async function submitReq(){
   const det=tp==='avance'&&am?`${am} DT`:d1&&d2?`${d1} – ${d2}`:'';
   await pushReqEmp({id:Date.now(),user:CU.u,name:L==='ar'?CU.name_ar:CU.name_fr,type:fr[tp],type_ar:ar[tp],status:'pending',detail:det,date:new Date().toLocaleDateString('fr-TN'),note});
   toast(t.req_ok,'✅','ok');['rtype','rnote','rd1','rd2','ramt'].forEach(id=>$(id).value='');
-  // Push notif → admin
-  const empName = L==='ar' ? CU.name_ar : CU.name_fr;
-  pushNotif("__admin__",
-    "📋 Nouvelle demande — " + empName,
-    (fr[tp] || tp) + (det ? ' : ' + det : ''),
-    { type: "demande", username: CU.u }
-  );
   go('requests');setNav($('bn-reqs'));
 }
 
@@ -1361,13 +1354,6 @@ async function sendMsg(){
   list.unshift({id:Date.now(),from:L==='ar'?CU.name_ar:CU.name_fr,user:CU.u,time:new Date().toLocaleDateString('fr-TN'),body:v,unread:true});
   await dbEmpSet('messages',list);
   $('msgTxt').value='';toast(t.msg_ok,'✅','ok');
-  // Push notif → admin
-  const senderName = L==='ar' ? CU.name_ar : CU.name_fr;
-  pushNotif("__admin__",
-    "💬 Message de " + senderName,
-    v.substring(0, 80),
-    { type: "message", username: CU.u }
-  );
 }
 
 /* ══ PROFILE ══ */
@@ -2187,11 +2173,10 @@ async function boot(){
 boot();
 
 </script>
-
-<!-- ════ FCM PUSH NOTIFICATIONS ════ -->
+<!-- ══ FCM PUSH NOTIFICATIONS ══ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 <script>
-const FCM_VAPID = "van39woo3jgK0-CpEKmHHWOAvJHz3KsiMZGjCQTi1MU";
+const FCM_VAPID = "BFU4xFzAkIQJbnnLju8M43P54NMENjDYXnV8c8oGvEGalVFIRt7Ado8b1RkBDlNZKvsVHRlyRYww3c_aNff-AVl";
 const NOTIF_URL = "/.netlify/functions/send-notif";
 
 async function initFCM(username, isAdmin = false) {
